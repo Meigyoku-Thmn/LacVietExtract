@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net5.0</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<PlatformTarget>x86</PlatformTarget>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<PlatformTarget>x86</PlatformTarget>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="EasyHook" Version="2.7.7097" />
+		<None Include="$(PkgEasyHook)\content\net40\EasyHook32.dll" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="$(PkgEasyHook)\content\net40\EasyHook32Svc.exe" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="$(PkgEasyHook)\content\net40\EasyLoad32.dll" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="$(PkgEasyHook)\content\net40\EasyHook64.dll" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="$(PkgEasyHook)\content\net40\EasyHook64Svc.exe" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="$(PkgEasyHook)\content\net40\EasyLoad64.dll" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Tracer\Tracer.vcxproj" />
+	</ItemGroup>
+
+</Project>

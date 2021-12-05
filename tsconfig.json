@@ -1,0 +1,23 @@
+{
+   "compilerOptions": {
+      "module": "CommonJS",
+      "noImplicitAny": false,
+      "removeComments": false,
+      "preserveConstEnums": true,
+      "inlineSourceMap": true,
+      "target": "ES2017",
+      "resolveJsonModule": true,
+      "moduleResolution": "Node",
+      "esModuleInterop": true,
+      "incremental": true,
+      "strict": true,
+      "strictPropertyInitialization": false,
+      "strictNullChecks": false,
+      "newLine": "lf",
+      "outDir": ".build"
+   },
+   "exclude": [
+      "node_modules/*",
+      "shellcode/*"
+   ]
+}

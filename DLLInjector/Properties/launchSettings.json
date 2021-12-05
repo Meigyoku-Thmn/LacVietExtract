@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DLLInjector": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

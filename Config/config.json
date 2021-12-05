@@ -1,0 +1,157 @@
+[
+  {
+    "name": "Lạc Việt mtd CVH",
+    "path": "C:/Program Files (x86)/mtd10CVH",
+    "dictPath": "DATA",
+    "dicts": [
+      {
+        "name": "Từ điển Trung-Việt",
+        "path": "LVCNVN10.DIT",
+        "sha256": "7AFBE74933E1F745F9BA5370429E84FBCF6F50F823C292CEF7F186749552336B",
+        "type": "SQLite3",
+        // https://docs.microsoft.com/en-us/dotnet/api/system.text.encoding#list-of-encodings
+        "keywordEncoding": "gb2312"
+      },
+      {
+        "name": "Từ điển Việt-Trung",
+        "path": "LVVNCN10.DIT",
+        "sha256": "4E5A9026BFF4B71F1D3685B71FEB6BC4D629C6C76872C9C635AA57C8A0ECB5B4",
+        "type": "SQLite3",
+        "keywordEncoding": "windows-1258"
+      },
+      {
+        "name": "Từ điển tiếng Việt",
+        "path": "LvVNVN08.dit",
+        "sha256": "984C4D82DEE6E083C8F3EBFF3530445FACAA94E21FF48A2886C0D2322E1ED10A",
+        "type": "SQLite3",
+        "keywordEncoding": "windows-1258"
+      }
+    ]
+  },
+  {
+    "name": "Lạc Việt mtd EVA",
+    "path": "C:/Program Files (x86)/LacViet/mtdEVA",
+    "dictPath": "DATA",
+    "dicts": [
+      {
+        "name": "Từ điển Anh-Việt",
+        "path": "LvENVN08.dit",
+        "sha256": "478557738AB2C27A7DC5250F60F871A10E616E84D9DAD09659584F8168D00B72",
+        "type": "SQLite3",
+        "keywordEncoding": "windows-1252"
+      },
+      {
+        "name": "Từ điển Việt-Anh",
+        "path": "LvVNEN08.dit",
+        "sha256": "5049FD23F90799A1F3537F4174251F611059D4406DE12D97ED31BD492EB7EA48",
+        "type": "SQLite3",
+        "keywordEncoding": "windows-1252"
+      },
+      {
+        "name": "Từ điển Tiền tố, Hậu tố",
+        "path": "PREFIX.DIT",
+        "sha256": "952E748A7B9FE7529D01E89313BED62B1122CB87D948F5D3AD6BF0F9580664D9",
+        "type": "SQLite3",
+        "keywordEncoding": "windows-1252"
+      },
+      {
+        "name": "Từ điển viết tắt tiếng Anh",
+        "path": "LvABBRE08.dit",
+        "sha256": "45632531A6F4923A4CF0DAE97AB77B04D4F8BDF509E7D43158E142E60DC17BF4",
+        "type": "SQLite3",
+        "keywordEncoding": "windows-1252"
+      },
+      {
+        "name": "Từ điển tiếng Việt",
+        "path": "LVVNVN.DIT",
+        "sha256": "FA12D282198509686D7970ED6010789908B698971A2CB4D08F52914C8AFCC3E9",
+        "type": "Berkeley",
+        "keywordEncoding": "windows-1258"
+      }
+    ]
+  },
+  {
+    "name": "Lạc Việt mtd JVN",
+    "path": "C:/Program Files (x86)/LacViet/mtdJVN",
+    "dictPath": "DATA",
+    "dicts": [
+      {
+        "name": "Từ điển Nhật-Việt",
+        "path": "LVJAPANVN10.DIT",
+        "sha256": "F95F1C7B3F0C514F86D4841748B1D8C946E472698244AA2983AC8DAE58BA08D1",
+        "type": "SQLite3",
+        "keywordEncoding": "shift_jis"
+      },
+      {
+        "name": "Từ điển Việt-Nhật",
+        "path": "LVVNJAPAN10.DIT",
+        "sha256": "01198063FC6CFE50BE62358A5B984BC9C7626E1941DDF679AD1F721B766C1AB4",
+        "type": "SQLite3",
+        "keywordEncoding": "windows-1258"
+      },
+      {
+        "name": "Từ điển tiếng Việt",
+        "path": "LVVNVN.DIT",
+        "sha256": "FA12D282198509686D7970ED6010789908B698971A2CB4D08F52914C8AFCC3E9",
+        "type": "Berkeley",
+        "keywordEncoding": "windows-1258"
+      }
+    ]
+  },
+  {
+    "name": "Lạc Việt mtd FVP",
+    "path": "C:/Program Files (x86)/LacViet/mtdFVP",
+    "dictPath": "DATA",
+    "dicts": [
+      {
+        "name": "Từ điển Pháp-Việt",
+        "path": "LVFV2000.DIT",
+        "sha256": "B9025C8F3ED0C2561086F70F6170E2F18F9DA764A4EA6CB372CA2A89706F6228",
+        "type": "MFCSerialized",
+        "keywordEncoding": "windows-1252"
+      },
+      {
+        "name": "Từ điển Việt-Pháp",
+        "path": "LvVF2000.dit",
+        "sha256": "0A66DB77D151C37F0F647FFA63547E56670D6AA513D51BF223E6F3A1C48F9BAA",
+        "type": "MFCSerialized",
+        "keywordEncoding": "windows-1258"
+      },
+      {
+        "name": "Từ điển tiếng Việt",
+        "path": "LVVNVN.DIT",
+        "sha256": "FA12D282198509686D7970ED6010789908B698971A2CB4D08F52914C8AFCC3E9",
+        "type": "Berkeley",
+        "keywordEncoding": "windows-1258"
+      }
+    ]
+  },
+  {
+    "name": "Lạc Việt mtd KVH",
+    "path": "C:/Program Files (x86)/LacViet/mtdKVH",
+    "dictPath": "DATA",
+    "dicts": [
+      {
+        "name": "Từ điển Hàn-Việt",
+        "path": "LVKOREANVIET.DIT",
+        "sha256": "D99C83806AA3A49829613E4F542A80C39656B68ACCB47B95BC8A54983DC9DB95",
+        "type": "Berkeley",
+        "keywordEncoding": "ks_c_5601-1987"
+      },
+      {
+        "name": "Từ điển Việt-Hàn",
+        "path": "LVVIETKOREAN.DIT",
+        "sha256": "C42CF0C80421840BC497657FE06A2C5BA2DD42716BAA6349D0DBB0CFEAEE5489",
+        "type": "Berkeley",
+        "keywordEncoding": "windows-1258"
+      },
+      {
+        "name": "Từ điển tiếng Việt",
+        "path": "LVVNVN.DIT",
+        "sha256": "FA12D282198509686D7970ED6010789908B698971A2CB4D08F52914C8AFCC3E9",
+        "type": "Berkeley",
+        "keywordEncoding": "windows-1258"
+      }
+    ]
+  }
+]
