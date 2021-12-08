@@ -1,6 +1,7 @@
 ﻿using EasyHook;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -14,6 +15,9 @@ namespace DLLInjector
 
         static unsafe void Main(string[] args)
         {
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
             Console.WriteLine("Create process suspended ...");
             NativeAPI.RtlCreateSuspendedProcess(TargetPath, null, 0, out var processId, out var threadId);
             Console.WriteLine("Inject the tracer.dll library...");

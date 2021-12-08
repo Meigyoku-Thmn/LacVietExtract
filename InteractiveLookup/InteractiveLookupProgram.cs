@@ -1,5 +1,6 @@
 ﻿using Common;
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -26,6 +27,8 @@ namespace InteractiveLookup
 
         static void Main()
         {
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
             Console.OutputEncoding = Encoding.Unicode;
             Console.InputEncoding = Encoding.Unicode;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

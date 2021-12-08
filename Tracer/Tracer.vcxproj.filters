@@ -1,33 +1,64 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{da1536bd-f86f-472b-a3c3-5f3a26a0d8bf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="Common">
+      <UniqueIdentifier>{0f47c530-feb7-449c-a4be-a0917609598a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Utils\CsvDump">
+      <UniqueIdentifier>{bfc29236-fe18-43d1-8116-485995cfee5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Veh">
+      <UniqueIdentifier>{9c6958db-3418-44e9-9c95-23e920fa019e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Capstone">
+      <UniqueIdentifier>{ed46aaac-c516-4282-b343-7b1dd5550481}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="StackTrace">
+      <UniqueIdentifier>{0c2a746f-b6bc-4aa1-a67b-6d1ed2c60d13}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="winapi_config.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="common.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="string_dump.hpp">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="csv_dump.h">
+      <Filter>Utils\CsvDump</Filter>
+    </ClInclude>
+    <ClInclude Include="veh.h">
+      <Filter>Veh</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone.h">
+      <Filter>Capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="stack-trace.h">
+      <Filter>StackTrace</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="common.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="csv_dump.cpp">
+      <Filter>Utils\CsvDump</Filter>
+    </ClCompile>
+    <ClCompile Include="veh.cpp">
+      <Filter>Veh</Filter>
+    </ClCompile>
+    <ClCompile Include="capstone.cpp">
+      <Filter>Capstone</Filter>
+    </ClCompile>
+    <ClCompile Include="stack-trace.cpp">
+      <Filter>StackTrace</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

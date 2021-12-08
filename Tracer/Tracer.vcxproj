@@ -89,7 +89,12 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;TRACER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>common.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)StackWalker\Main</AdditionalIncludeDirectories>
+      <EnableModules>
+      </EnableModules>
+      <LanguageStandard>
+      </LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -107,7 +112,10 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;TRACER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>common.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)StackWalker\Main</AdditionalIncludeDirectories>
+      <EnableModules>
+      </EnableModules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,17 +161,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h" />
-    <ClInclude Include="pch.h" />
+    <ClInclude Include="capstone.h" />
+    <ClInclude Include="csv_dump.h" />
+    <ClInclude Include="stack-trace.h" />
+    <ClInclude Include="veh.h" />
+    <ClInclude Include="winapi_config.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="string_dump.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="capstone.cpp" />
+    <ClCompile Include="csv_dump.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="pch.cpp">
+    <ClCompile Include="common.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="stack-trace.cpp" />
+    <ClCompile Include="veh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,8 @@ namespace ConvViVi
 
         static void Main(string[] args)
         {
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
             Console.OutputEncoding = Encoding.Unicode;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
