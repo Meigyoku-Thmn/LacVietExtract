@@ -1,0 +1,3 @@
+[submodule "StackWalker"]
+	path = StackWalker
+	url = https://github.com/JochenKalmbach/StackWalker.git
