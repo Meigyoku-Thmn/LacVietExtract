@@ -1,7 +1,7 @@
 #include "common.h"
 #include "csv_dump.h"
 #include "capstone.h"
-#include "veh.h"
+#include "tracer.h"
 
 #pragma comment (lib, "delayimp")
 #pragma comment (lib, "Shlwapi")
@@ -16,7 +16,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 }
 
 wstring logPath;
-size_t __fastcall MyRoutine(DWORD *instance, void *_, char *block_name, char **outputObj);
+size_t __fastcall MyRoutine(PDWORD instance, PVOID _, PCHAR block_name, PBYTE *outputObj);
 
 constexpr auto TARGET_LIB_NAME = "mtdDataLIB.dll";
 decltype(&MyRoutine) targetRoutine;
@@ -49,38 +49,24 @@ extern "C" void DLLEXPORT PASCAL NativeInjectionEntryPoint(REMOTE_ENTRY_INFO * i
     cout << "Hook installed successfully.\n";
     ULONG ACLEntries[1] = {0};
     LhSetExclusiveACL(ACLEntries, 1, &hHook);
-
-    AddVectoredExceptionHandler(1, Veh);
 }
 
-size_t __fastcall MyRoutine(DWORD *instance, void *_, char *block_name, char **outputObj) {
+size_t __fastcall MyRoutine(PDWORD instance, PVOID _, PCHAR block_name, PBYTE *outputObj) {
     auto dataSize = targetRoutine(instance, _, block_name, outputObj);
 
     if (strcmp(block_name, "Content0") != 0)
         return dataSize;
-    cout << "Hit Content0" << "\n";
+
+    cout << "Hit " << block_name << "\n";
 
     if (InitializeCapstone() == false)
         return dataSize;
 
     InitializeCSVWriter(logPath.c_str());
+    InitializeTracerCurrentThread();
 
     auto data = *outputObj;
-    veh_dataAddr = (DWORD)data;
-    ::veh_dataSize = dataSize;
-
-    SYSTEM_INFO sysInfo;
-    GetSystemInfo(&sysInfo);
-    auto pageSize = sysInfo.dwPageSize;
-
-    MEMORY_BASIC_INFORMATION mbi;
-    VirtualQuery(data, &mbi, sizeof(mbi));
-    veh_beginPageAddress = (DWORD)mbi.BaseAddress;
-    VirtualQuery(data + dataSize - 1, &mbi, sizeof(mbi));
-    veh_endPageAddress = (DWORD)mbi.BaseAddress + pageSize;
-
-    DWORD oldProtect;
-    VirtualProtect(data, dataSize, PAGE_READWRITE | PAGE_GUARD, &oldProtect);
+    StartTracing(data, data + dataSize);
 
     return dataSize;
 }

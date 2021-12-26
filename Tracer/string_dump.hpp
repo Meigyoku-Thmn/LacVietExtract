@@ -6,7 +6,7 @@ using namespace std;
 template <typename T>
 string to_hex(T val, size_t width = sizeof(T) * 2) {
     stringstream ss;
-    ss << setfill('0') << setw(width) << hex << (val | 0);
+    ss << setfill('0') << setw(width) << hex << ((ULONG_PTR)val);
     return ss.str();
 }
 

@@ -163,8 +163,8 @@
   <ItemGroup>
     <ClInclude Include="capstone.h" />
     <ClInclude Include="csv_dump.h" />
-    <ClInclude Include="stack-trace.h" />
-    <ClInclude Include="veh.h" />
+    <ClInclude Include="helper.hpp" />
+    <ClInclude Include="tracer.h" />
     <ClInclude Include="winapi_config.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="string_dump.hpp" />
@@ -179,11 +179,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="stack-trace.cpp" />
-    <ClCompile Include="veh.cpp" />
+    <ClCompile Include="tracer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="note.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
