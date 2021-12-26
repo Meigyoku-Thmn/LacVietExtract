@@ -5,7 +5,7 @@
 4: SetFilePointer: (1) offset 0x0 byte(s) from FILE_BEGIN lvfv2000.dit
 5: ReadFile: (1) 0x10 byte(s) lvfv2000.dit  c2 3e 00 00 7a 78 e4 01 10 00 00 00 4c 56 4d 44
 6: SetFilePointer: (1) offset 0x10 byte(s) from FILE_BEGIN lvfv2000.dit
-7: ReadFile: (1) 0xc byte(s) lvfv2000.dit  01 00 00 00 f9 01 00 00 1c 00 00 00
+7: ReadFile: (1) 0xc byte(s) lvfv2000.dit  01 00 00 00 f9 01 00 00 [1c 00 00 00]
 8: SetFilePointer: (1) offset 0x1c byte(s) from FILE_BEGIN lvfv2000.dit
 9: ReadFile: (1) 0x4 byte(s) lvfv2000.dit  2e 00 00 00
 10: ReadFile: (1) 0x4 byte(s) lvfv2000.dit  6c 00 00 00

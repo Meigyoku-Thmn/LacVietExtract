@@ -1,0 +1,25 @@
+Ordinal;Type;nByte;Mnemonic;Operands;MemoryOffset;Data;CodeAddress;FlowId;ESI;EDI;EAX;EBX;ECX;EDX;ESP;EBP;StackTrace
+1;Read;4;mov;eax, dword ptr [esi + ecx*4 - 8];000e98a7;80 00 00 2c ;79fdaf70;1;042a08c7;0019c740;042a08cf;0019c6f0;00000002;00000000;0019c6e8;0019c6f0;" MSVCR90.dll!memcpy+0x00000150
+ ntdll.dll!ZwSetInformationFile+0x0000000C
+ KERNELBASE.dll!SetFilePointer+0x00000072
+ mfc90.dll+0x00051118
+ mtdDataLIB.dll!Ordinal151+0x0001A427
+ mtdDataLIB.dll!Ordinal151+0x0001A4D9
+ mtdDataLIB.dll!Ordinal151+0x0001A52D
+ mtdDataLIB.dll!Ordinal151+0x0001A741
+ mtdDataLIB.dll!Ordinal151+0x00001867
+ mtdDataLIB.dll!Ordinal151+0x00016D2C
+ mtdDataLIB.dll!LVReloadMedia+0x000072C3
+"
+2;Read;4;mov;eax, dword ptr [esi + ecx*4 - 8];000e98a7;80 00 00 2c ;79fdaf70;1;042a08c7;0019c740;042a08cf;0019c6f0;00000002;00000000;0019c6e8;0019c6f0;" MSVCR90.dll!memcpy+0x00000150
+ ntdll.dll!ZwSetInformationFile+0x0000000C
+ KERNELBASE.dll!SetFilePointer+0x00000072
+ mfc90.dll+0x00051118
+ mtdDataLIB.dll!Ordinal151+0x0001A427
+ mtdDataLIB.dll!Ordinal151+0x0001A4D9
+ mtdDataLIB.dll!Ordinal151+0x0001A52D
+ mtdDataLIB.dll!Ordinal151+0x0001A741
+ mtdDataLIB.dll!Ordinal151+0x00001867
+ mtdDataLIB.dll!Ordinal151+0x00016D2C
+ mtdDataLIB.dll!LVReloadMedia+0x000072C3
+"
