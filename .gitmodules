@@ -1,0 +1,3 @@
+[submodule "MetaKitWrapper"]
+	path = MetaKitWrapper
+	url = https://github.com/Meigyoku-Thmn/MetaKitWrapper
