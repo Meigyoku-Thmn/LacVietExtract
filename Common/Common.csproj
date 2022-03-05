@@ -25,4 +25,16 @@
 	  <ProjectReference Include="..\MetaKitWrapper\MetaKitWrapper\MetaKitWrapper.vcxproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="config-markup.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="config-seeds.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="config.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>

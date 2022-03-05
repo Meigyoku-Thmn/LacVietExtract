@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
-    <ProjectReference Include="..\Config\Config.csproj" />
+    <ProjectReference Include="..\Extractor\Extractor.csproj" />
   </ItemGroup>
 
 </Project>

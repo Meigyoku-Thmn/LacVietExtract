@@ -26,6 +26,8 @@ namespace Common
 
     public static class Helper
     {
+        static readonly Config config = Config.Get();
+
         public static string IFF(string cond, string trueVal, string falseVal)
             => $"CASE WHEN {cond} THEN {trueVal} ELSE {falseVal} END";
 
@@ -57,24 +59,6 @@ namespace Common
                 return sb.ToString();
             }
             return content;
-        }
-
-        public static string TruncateGarbage(string content)
-        {
-            var hasByteCode = false;
-            var corruptedCharIdx = content
-                .TakeWhile((chr, i) => {
-                    if (chr == '\n' || chr == '\r' || chr == '\t')
-                        return true;
-                    if (!char.IsControl(chr))
-                        return true;
-                    if (content.ElementAtOrDefault(i + 1) == chr)
-                        return hasByteCode = true;
-                    if (hasByteCode)
-                        return !(hasByteCode = false);
-                    return false;
-                }).Count();
-            return content.Substring(0, corruptedCharIdx);
         }
 
         static readonly Regex CodeOpenTagRegex = new(@"<c(\d+)>", RegexOptions.Compiled);
@@ -113,6 +97,7 @@ namespace Common
 
         static (string content, string[] errorMessages) ResolveLactVietDictMarkups(string content)
         {
+            var markups = config.ConfigMarkup;
             var errorMessages = Array.Empty<string>();
             var contentBuilder = new StringBuilder(content.Length);
             contentBuilder.Append("<dict-entry>");
@@ -163,34 +148,34 @@ namespace Common
                 else if (markupMatch.Value == CAT)
                 {
                     CloseTags();
-                    EnterTag("dict-cat");
+                    EnterTag(markups.Category);
                 }
                 else if (markupMatch.Value == DEF)
                 {
                     CloseTags();
-                    EnterTag("dict-def");
+                    EnterTag(markups.Definition);
                 }
                 else if (markupMatch.Value == EG)
                 {
                     CloseTags();
-                    EnterTag("dict-eg");
+                    EnterTag(markups.Example);
                 }
                 else if (markupMatch.Value == EG_TSL)
                 {
                     CloseTags();
-                    EnterTag("dict-eg-tsl");
+                    EnterTag(markups.ExampleTranslation);
                 }
                 else if (markupMatch.Value == MARK)
                 {
-                    if (markupStack.Count > 0 && markupStack.Peek() == "mark")
+                    if (markupStack.Count > 0 && markupStack.Peek() == markups.OtherWord)
                         CloseTags(1);
                     else
-                        EnterTag("mark");
+                        EnterTag(markups.OtherWord);
                 }
                 else if (markupMatch.Value == IPA_OPEN)
                 {
                     CloseTags();
-                    EnterTag("dict-ipa");
+                    EnterTag(markups.PhoneticNotation);
                 }
                 else if (markupMatch.Value == IPA_CLOSE)
                 {
@@ -199,43 +184,43 @@ namespace Common
                 else if (markupMatch.Value == IDIOM)
                 {
                     CloseTags();
-                    EnterTag("dict-idiom");
+                    EnterTag(markups.Idiom);
                 }
                 else if (markupMatch.Value == IDIOM_TSL)
                 {
                     CloseTags();
-                    EnterTag("dict-idiom-tsl");
+                    EnterTag(markups.IdiomTranslation);
                 }
                 else if (markupMatch.Value == IDIOM_EG)
                 {
                     CloseTags();
-                    EnterTag("dict-idiom-eg");
+                    EnterTag(markups.IdiomExample);
                 }
                 else if (markupMatch.Value == IDIOM_EG_TSL)
                 {
                     CloseTags();
-                    EnterTag("dict-idiom-eg-tsl");
+                    EnterTag(markups.IdiomExampleTranslation);
                 }
                 else if (markupMatch.Value == DEF2)
                 {
                     CloseTags();
-                    EnterTag("dict-def2");
+                    EnterTag(markups.Definition2);
                 }
                 else if (markupMatch.Value == ALT)
                 {
                     CloseTags();
-                    EnterTag("dict-alt");
+                    EnterTag(markups.Alternative);
                 }
                 else if (markupMatch.Value == MEDIA_OPEN)
                 {
-                    EnterTag("dict-media");
+                    EnterTag(markups.Media);
                 }
                 else if (markupMatch.Value == MEDIA_CLOSE)
                 {
                     CloseTags();
                 }
             }
-            contentBuilder.Append("</dict-entry>");
+            contentBuilder.Append($"</{markups.Entry}>");
             content = contentBuilder.ToString();
             if (content.Any(chr =>
                 char.IsControl(chr) && chr != '\r' && chr != '\n' || chr == '\x81' || chr == '\x8D' || chr == '\x8F' || chr == '\x90' || chr == '\x9D'))

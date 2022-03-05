@@ -10,8 +10,44 @@ namespace Extractor
     using Words = Dictionary<string, uint>;
     using Entries = Dictionary<uint, Entry>;
 
-    class Patching
+    public class Patching
     {
+        public static bool ApplySingle(Config.App.Dict dict, string word, ref string content)
+        {
+            var orphanedWords = dict.Patches?.OrphanedWords ?? Array.Empty<string>();
+            var corruptedEntries = dict.Patches?.CorruptedEntries ?? new Dictionary<string, object>();
+            var substitutions = dict.Patches?.Substitutions ?? Array.Empty<Config.App.Dict._Patches.Substitution>();
+            if (orphanedWords.Length == 0 && corruptedEntries.Count == 0 && substitutions.Length == 0) return false;
+
+            var patched = false;
+            if (corruptedEntries.TryGetValue(word, out var solution))
+            {
+                Log.Write($"Fix content for word '{word}'");
+                if (solution is int length)
+                    content = content.Substring(0, length);
+                else if (solution is string altContent)
+                    content = altContent;
+                patched |= true;
+            }
+
+            foreach (var substitution in substitutions)
+            {
+                if (substitution.Words.Contains(word))
+                {
+                    if (!patched) Log.Write($"Fix content for word '{word}'");
+                    for (var i = 0; i < substitution.Targets.Length; i++)
+                    {
+                        var target = substitution.Targets[i];
+                        var replacement = substitution.Replacements[i];
+                        content = content.Replace(target, replacement);
+                        patched |= true;
+                    }
+                }
+            }
+
+            return patched;
+        }
+
         public static void Apply(Config.App.Dict dict, Words words, Entries entries)
         {
             var corruptedWords = dict.Patches?.CorruptedWords ?? new Words();

@@ -44,9 +44,31 @@ namespace Common
         public App[] Apps { get; set; }
         public SeedGroups SeedsByName { get; set; }
 
-        private Config() { }
+        public class MarkupConfig
+        {
+            public string Category { get; set; }
+            public string Definition { get; set; }
+            public string Example { get; set; }
+            public string ExampleTranslation { get; set; }
+            public string OtherWord { get; set; }
+            public string PhoneticNotation { get; set; }
+            public string Idiom { get; set; }
+            public string IdiomTranslation { get; set; }
+            public string IdiomExample { get; set; }
+            public string IdiomExampleTranslation { get; set; }
+            public string Definition2 { get; set; }
+            public string Alternative { get; set; }
+            public string Media { get; set; }
+            public string Entry { get; set; }
+        }
+        public MarkupConfig ConfigMarkup { get; set; }
 
-        public static Config Get()
+        Config() { }
+
+        static readonly Config config;
+        static Config() => config = Open();
+        public static Config Get() => config;
+        static Config Open()
         {
             var jsonOptions = new JsonSerializerOptions {
                 PropertyNameCaseInsensitive = true,
@@ -78,9 +100,12 @@ namespace Common
                 )
             );
 
+            var configMarkup = JsonSerializer.Deserialize<MarkupConfig>(File.ReadAllText("config-markup.json"), jsonOptions);
+
             return new Config {
                 Apps = apps,
                 SeedsByName = seedsByName,
+                ConfigMarkup = configMarkup,
             };
         }
 

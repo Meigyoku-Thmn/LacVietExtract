@@ -1,0 +1,16 @@
+﻿{
+  "category": "dict-cat",
+  "definition": "dict-def",
+  "example": "dict-eg",
+  "exampleTranslation": "dict-eg-tsl",
+  "otherWord": "mark",
+  "phoneticNotation": "dict-ipa",
+  "idiom": "dict-idiom",
+  "idiomTranslation": "dict-idiom-tsl",
+  "idiomExample": "dict-idiom-eg",
+  "idiomExampleTranslation": "dict-idiom-eg-tsl",
+  "definition2": "dict-def2",
+  "alternative": "dict-alt",
+  "media": "dict-media",
+  "entry": "dict-entry"
+}

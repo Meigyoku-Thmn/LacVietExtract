@@ -14,7 +14,7 @@ namespace Extractor
     using Words = Dictionary<string, uint>;
     using Entries = Dictionary<uint, Entry>;
 
-    class Entry
+    public class Entry
     {
         public uint Hash;
         public string Word;
@@ -25,6 +25,7 @@ namespace Extractor
 
     class ExtractorProgram
     {
+        static readonly Config config = Config.Get();
         static void Main(string[] args)
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -32,8 +33,6 @@ namespace Extractor
             Console.OutputEncoding = Encoding.Unicode;
             Console.InputEncoding = Encoding.Unicode;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            var config = Config.Get();
 #if DEBUG
             ModifyConfigForDebugging(config);
 #endif

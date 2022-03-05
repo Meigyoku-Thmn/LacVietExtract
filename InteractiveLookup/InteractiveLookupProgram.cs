@@ -1,17 +1,19 @@
 ﻿using Common;
+using Extractor;
+using HtmlAgilityPack;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace InteractiveLookup
 {
-    using static BinaryPrimitives;
     using static EscColor;
     using Seeds = Dictionary<uint, string>;
 
@@ -25,7 +27,7 @@ namespace InteractiveLookup
             GetWordByKeyword = 2,
             GetWordByHash = 3,
         }
-
+        static readonly Config config = Config.Get();
         static void Main()
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -33,8 +35,6 @@ namespace InteractiveLookup
             Console.OutputEncoding = Encoding.Unicode;
             Console.InputEncoding = Encoding.Unicode;
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            var config = Config.Get();
         SELECT_APP:
             var app = AskAnApplication(config);
         SELECT_DICT:
@@ -135,17 +135,17 @@ namespace InteractiveLookup
                 {
                     string[] errorMessages;
                     (content, errorMessages) = Helper.ResolveLacVietMarkups(content);
+                    if (Patching.ApplySingle(dict, normalizedKeyword, ref content))
+                        errorMessages = null;
                     if (errorMessages == null)
-                        Console.WriteLine("Entry is corrupted.");
-                    var lenBefore = content.Length;
-                    content = Helper.TruncateGarbage(content);
-                    var lenAfter = content.Length;
-                    content = ParseAndFormat(content);
+                    {
+                        Console.WriteLine("Entry is corrupted:");
+                        foreach (var e in errorMessages)
+                            Console.WriteLine("  " + e);
+                    }
+                    content = ParseAndFormat2(config, content);
                     Console.WriteLine();
-                    if (lenBefore != lenAfter)
-                        Console.WriteLine(BrightYellow + keyword + $" ({hash}, garbage trimmed)" + Reset);
-                    else
-                        Console.WriteLine(BrightYellow + keyword + $" ({hash})" + Reset);
+                    Console.WriteLine(BrightYellow + keyword + $" ({hash})" + Reset);
                     Console.WriteLine(content);
                 }
             }
@@ -179,80 +179,74 @@ namespace InteractiveLookup
         static readonly Regex Markups =
             new(@"%%|\*\*|``|\#\#|~~|\[\[|\]\]|\$\$|:|^.|\n\$\$|<eof>", RegexOptions.Compiled);
 
-        public static string ParseAndFormat(string content)
+        public static string ParseAndFormat2(Config config, string content)
         {
-            var formatedContent = new StringBuilder(content.Length);
-            var lastIdx = 0;
-            string MakeNewLine() => lastIdx != 0 ? NewLine : "";
-            string Join(params string[] values) => string.Join("", values);
+            var contentBuilder = new StringBuilder(content.Length);
+            var doc = new HtmlDocument();
+            doc.LoadHtml(content);
+            var markups = config.ConfigMarkup;
 
-            var lastIndentation = "";
-            var lastColor = Reset;
-            var insideRed = false;
-            var lastMatch = default(string);
+            static bool IsElement(HtmlNode node, string name)
+                => node.NodeType == HtmlNodeType.Element && node.Name == name;
 
-            content = Markups.Replace(content, match => {
-                var replacement = "";
-                switch (match.Value)
+            StringBuilder ResolveText(HtmlNode node, string defaultColor)
+            {
+                var contentBuilder = new StringBuilder();
+                foreach (var subNode in node.ChildNodes)
                 {
-                    case "<eof>":
-                        replacement = Reset;
-                        break;
-                    case "%%":
-                        replacement = Join(MakeNewLine(), lastIndentation = "  ", lastColor = Cyan);
-                        break;
-                    case ":":
-                        replacement = ":";
-                        if (lastMatch == "%%")
-                            replacement += Reset;
-                        break;
-                    case "**":
-                        replacement = Join(MakeNewLine(), "ℹ️", lastColor = BrightCyan);
-                        lastIndentation = "  ";
-                        break;
-                    case "``":
-                        replacement = Join(MakeNewLine(), "  🟩", lastColor = BrightGreen);
-                        lastIndentation = "    ";
-                        break;
-                    case "##":
-                        replacement = Join(MakeNewLine(), lastIndentation = "      ", lastColor = Reset);
-                        break;
-                    case "~~":
-                        replacement = MakeNewLine() + lastIndentation;
-                        break;
-                    case "[[":
-                        replacement = Join(MakeNewLine(), "🔊", lastColor = BrightRed, "[");
-                        lastIndentation = "  ";
-                        break;
-                    case "]]":
-                        replacement = "]" + (lastColor = Reset);
-                        break;
-                    case "$$":
-                        if (insideRed)
-                        {
-                            replacement = lastColor;
-                            insideRed = false;
-                        }
-                        else
-                        {
-                            insideRed = true;
-                            replacement = Red;
-                        }
-                        break;
-                    case "\n$$":
-                        insideRed = true;
-                        replacement = Join("\n", lastIndentation, Red);
-                        break;
-                    default:
-                        if (match.Value.Length == 1)
-                            replacement = lastIndentation + match.Value;
-                        else throw new Exception();
-                        break;
+                    if (IsElement(subNode, markups.OtherWord))
+                        contentBuilder.Append(Red + subNode.InnerText + defaultColor);
+                    else if (IsElement(subNode, "br"))
+                        contentBuilder.Append(Environment.NewLine);
+                    else
+                        contentBuilder.Append(subNode.InnerText);
                 }
-                lastIdx = match.Index + match.Value.Length;
-                lastMatch = match.Value;
-                return replacement;
-            });
+
+                return contentBuilder;
+            }
+
+            foreach (var node in doc.DocumentNode.ChildNodes[markups.Entry].ChildNodes)
+            {
+                if (IsElement(node, markups.Category))
+                    contentBuilder.Append(Environment.NewLine + BrightCyan + "ℹ️")
+                        .Append(ResolveText(node, BrightCyan));
+                else if (IsElement(node, markups.Definition))
+                    contentBuilder.Append(Environment.NewLine + BrightGreen + "  🟩")
+                        .Append(ResolveText(node, BrightGreen));
+                else if (IsElement(node, markups.Example))
+                    contentBuilder.Append(Environment.NewLine + Reset + "      ")
+                        .Append(ResolveText(node, Reset));
+                else if (IsElement(node, markups.ExampleTranslation))
+                    contentBuilder.Append(Environment.NewLine + Reset + "      ")
+                        .Append(ResolveText(node, Reset));
+                else if (IsElement(node, markups.PhoneticNotation))
+                    contentBuilder.Append(Environment.NewLine + BrightRed + "🔊[")
+                        .Append(ResolveText(node, BrightRed))
+                        .Append("]");
+                else if (IsElement(node, markups.Idiom))
+                    contentBuilder.Append(Environment.NewLine + BrightGreen + "  🟩")
+                        .Append(ResolveText(node, BrightGreen));
+                else if (IsElement(node, markups.IdiomTranslation))
+                    contentBuilder.Append(Environment.NewLine + Reset + "   ")
+                        .Append(ResolveText(node, Reset));
+                else if (IsElement(node, markups.IdiomExample))
+                    contentBuilder.Append(Environment.NewLine + Reset + "      ")
+                        .Append(ResolveText(node, Reset));
+                else if (IsElement(node, markups.IdiomExampleTranslation))
+                    contentBuilder.Append(Environment.NewLine + Reset + "      ")
+                        .Append(ResolveText(node, Reset));
+                else if (IsElement(node, markups.Definition2))
+                    contentBuilder.Append(Environment.NewLine + BrightCyan + "ℹ️")
+                        .Append(ResolveText(node, BrightCyan));
+                else if (IsElement(node, markups.Alternative))
+                    contentBuilder.Append(Environment.NewLine + Reset)
+                        .Append(ResolveText(node, Reset));
+                else
+                    contentBuilder.Append(Environment.NewLine + Reset)
+                        .Append(ResolveText(node, Reset));
+            }
+            contentBuilder.Append(Reset).Append(Environment.NewLine);
+            content = WebUtility.HtmlDecode(contentBuilder.ToString());
             return content;
         }
     }
