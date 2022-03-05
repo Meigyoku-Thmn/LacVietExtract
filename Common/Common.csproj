@@ -13,11 +13,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Berkeley.DB" Version="6.1.26" GeneratePathProperty="true"/>
+		<PackageReference Include="Berkeley.DB" Version="6.1.26" GeneratePathProperty="true" />
 		<None Include="$(PkgBerkeley_DB)\content\libdb_csharp61.dll" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="$(PkgBerkeley_DB)\content\libdb61.dll" CopyToOutputDirectory="PreserveNewest" />
 		<PackageReference Include="HtmlAgilityPack" Version="1.11.38" />
+		<PackageReference Include="RtfPipe" Version="2.0.7677.4303" />
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.115.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\MetaKitWrapper\MetaKitWrapper\MetaKitWrapper.vcxproj" />
 	</ItemGroup>
 
 </Project>

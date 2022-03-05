@@ -1,5 +1,7 @@
 ﻿using Common;
 using System;
+using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -7,13 +9,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using static InteractiveLookup.EscColor;
-using static System.Buffers.Binary.BinaryPrimitives;
-
-using Seeds = System.Collections.Generic.Dictionary<uint, string>;
-
 namespace InteractiveLookup
 {
+    using static BinaryPrimitives;
+    using static EscColor;
+    using Seeds = Dictionary<uint, string>;
+
     class InteractiveLookupProgram
     {
         const int OrdinalPadding = 3;
@@ -41,16 +42,10 @@ namespace InteractiveLookup
             if (dict == null)
                 goto SELECT_APP;
             ValidateFileSHA256(app, dict);
-        SELECT_METHOD:
-            var queryMethod = AskAQueryMethod();
+
             try
             {
-                if (queryMethod == QueryMethod.GetEntry)
-                    LookupEntry(app, dict, config.SeedsByName[app.Name]);
-                else if (queryMethod == QueryMethod.GetWordByHash || queryMethod == QueryMethod.GetWordByKeyword)
-                    Lookup_mlob(app, dict, config.SeedsByName[app.Name], queryMethod);
-                else
-                    goto SELECT_DICT;
+                LookupEntry(app, dict, config.SeedsByName[app.Name]);
             }
             catch (NotSupportedException e)
             {
@@ -59,7 +54,7 @@ namespace InteractiveLookup
                 goto SELECT_DICT;
             }
 
-            goto SELECT_METHOD;
+            goto SELECT_DICT;
         }
 
         static uint ConsoleReadOrdinal(uint startIndex, uint endIndex)
@@ -68,7 +63,10 @@ namespace InteractiveLookup
             while (true)
             {
                 Console.Write("> ");
-                if (uint.TryParse(Console.ReadLine(), out appNum) && appNum >= startIndex && appNum <= endIndex)
+                var input = Console.ReadLine().Trim();
+                if (input == "`")
+                    input = "0";
+                if (uint.TryParse(input, out appNum) && appNum >= startIndex && appNum <= endIndex)
                     break;
             }
             return appNum;
@@ -91,7 +89,7 @@ namespace InteractiveLookup
             Console.WriteLine($"Chọn từ điển trong {app.Name}:");
             foreach (var (dict, idx) in app.Dicts.Select((e, i) => (e, i)))
                 Console.WriteLine($"{idx + 1,OrdinalPadding}. {dict.Name}");
-            Console.WriteLine($"{0,OrdinalPadding}. Trở lại menu vừa rồi");
+            Console.WriteLine($"{'`',OrdinalPadding}. Trở lại menu vừa rồi");
 
             var ordinal = ConsoleReadOrdinal(0, (uint)app.Dicts.Length);
 
@@ -111,31 +109,13 @@ namespace InteractiveLookup
             Console.WriteLine();
         }
 
-        static QueryMethod? AskAQueryMethod()
-        {
-            Console.WriteLine("Bạn muốn làm gì:");
-            Console.WriteLine($"{1,OrdinalPadding}. Tra cứu từ điển");
-            Console.WriteLine($"{2,OrdinalPadding}. Tra cứu mlob (dùng keyword)");
-            Console.WriteLine($"{3,OrdinalPadding}. Tra cứu mlob (dùng giá trị hash)");
-            Console.WriteLine($"{0,OrdinalPadding}. Trở lại menu vừa rồi");
-
-            var queryMethod = (QueryMethod)ConsoleReadOrdinal(0, 3);
-            Console.WriteLine();
-
-            if (Enum.IsDefined(queryMethod))
-                return queryMethod;
-            return null;
-        }
-
         static void LookupEntry(Config.App app, Config.App.Dict dict, Seeds seeds)
         {
             var dbPath = Path.Combine(app.Path, app.DictPath, dict.Path);
-            var cloneDbPath = Path.Combine(app.Name, Path.GetFileName(dict.Path));
-            Tools.PrepareDatabase(dbPath, cloneDbPath, dict.Type);
 
             var keywordEncoding = Encoding.GetEncoding(dict.KeywordEncoding);
 
-            using var con = new FileConnection(cloneDbPath, dict.Type.Value);
+            using var con = DictConnection.Create(dbPath, dict.Type.Value, keywordEncoding, app.Name, seeds);
 
             while (true)
             {
@@ -148,31 +128,17 @@ namespace InteractiveLookup
                     ? keyword.ToVietnameseDecomposed()
                     : keyword;
 
-                var hash = Tools.HashKeyword(keywordEncoding.GetBytes(normalizedKeyword));
+                var hash = Helper.HashKeyword(keywordEncoding.GetBytes(normalizedKeyword));
 
-                var (data, encryptedSize, decoded) = con.ReadEntryData(hash);
-                if (data != null)
+                var content = con.ReadEntryData(normalizedKeyword, hash);
+                if (content != null)
                 {
-                    if (decoded == false)
-                        Tools.DecodeBinaryInPlace(data);
-                    bool decrypted;
-                    try
-                    {
-                        decrypted = Tools.DecryptBinaryInPlace(data.AsSpan(0, encryptedSize), seeds, allowSkip: true);
-                        if (decrypted == false)
-                            Console.WriteLine($"Unknown header: 0x{ReadUInt32LittleEndian(data.AsSpan(0, 4)):X2}");
-                    }
-                    catch (ArgumentException e)
-                    {
-                        Console.Error.WriteLine(e.Message);
-                        continue;
-                    }
-                    var content = decrypted
-                        ? Encoding.Latin1.GetString(data.AsSpan(4, encryptedSize - 4))
-                        : Encoding.Latin1.GetString(data.AsSpan(0, encryptedSize));
-                    content = Tools.ResolveLacVietMarkups(content);
+                    string[] errorMessages;
+                    (content, errorMessages) = Helper.ResolveLacVietMarkups(content);
+                    if (errorMessages == null)
+                        Console.WriteLine("Entry is corrupted.");
                     var lenBefore = content.Length;
-                    content = Tools.ReduceGarbage(content);
+                    content = Helper.TruncateGarbage(content);
                     var lenAfter = content.Length;
                     content = ParseAndFormat(content);
                     Console.WriteLine();
@@ -181,71 +147,6 @@ namespace InteractiveLookup
                     else
                         Console.WriteLine(BrightYellow + keyword + $" ({hash})" + Reset);
                     Console.WriteLine(content);
-                }
-            }
-            Console.WriteLine();
-        }
-
-        static void Lookup_mlob(Config.App app, Config.App.Dict dict, Seeds seeds, QueryMethod? queryMethod)
-        {
-            var dbPath = Path.Combine(app.Path, app.DictPath, dict.Path);
-            var cloneDbPath = Path.Combine(app.Name, Path.GetFileName(dict.Path));
-            Tools.PrepareDatabase(dbPath, cloneDbPath, dict.Type);
-
-            var encoding = Encoding.GetEncoding(dict.KeywordEncoding);
-
-            using var con = new FileConnection(cloneDbPath, dict.Type.Value);
-
-            while (true)
-            {
-                Console.WriteLine();
-                uint hash;
-                if (queryMethod == QueryMethod.GetWordByKeyword)
-                {
-                    Console.Write("Bạn muốn tra cứu bằng keyword gì (nhập '-' để dừng): ");
-                    var keyword = Console.ReadLine().Trim();
-                    if (keyword == "-")
-                        break;
-
-                    hash = Tools.HashKeyword(Encoding.Latin1.GetBytes(keyword));
-                }
-                else if (queryMethod == QueryMethod.GetWordByHash)
-                {
-                    Console.Write("Bạn muốn tra cứu bằng id gì (nhập '-' để dừng): ");
-                    var id = Console.ReadLine().Trim();
-                    if (id == "-")
-                        break;
-                    try
-                    {
-                        hash = uint.Parse(id);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.Error.WriteLine(e.Message);
-                        continue;
-                    }
-                }
-                else throw new ArgumentException("Invalid QueryMethod.");
-
-                var (data, encryptedSize, decoded) = con.ReadEntryData(hash);
-                while (data != null)
-                {
-                    if (decoded == false)
-                        Tools.DecodeBinaryInPlace(data);
-                    try
-                    {
-                        Tools.DecryptBinaryInPlace(data.AsSpan(0, encryptedSize), seeds);
-                    }
-                    catch (ArgumentException e)
-                    {
-                        Console.Error.WriteLine(e.Message);
-                        continue;
-                    }
-                    var content = encoding
-                        .GetString(data.AsSpan(4, encryptedSize - 4))
-                        .Normalize();
-                    foreach (var word in content.Split('\0'))
-                        Console.WriteLine(word);
                 }
             }
             Console.WriteLine();

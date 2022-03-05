@@ -1,8 +1,8 @@
 {
   "profiles": {
-    "DLLInjector": {
+    "InteractiveLookup": {
       "commandName": "Project",
-      "nativeDebugging": true
+      "nativeDebugging": false
     }
   }
 }

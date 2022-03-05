@@ -9,22 +9,128 @@
         "path": "LVCNVN10.DIT",
         "sha256": "7AFBE74933E1F745F9BA5370429E84FBCF6F50F823C292CEF7F186749552336B",
         "type": "SQLite3",
-        // https://docs.microsoft.com/en-us/dotnet/api/system.text.encoding#list-of-encodings
-        "keywordEncoding": "gb2312"
+        "keywordEncoding": "gb2312",
+        "patches": {
+          "corruptedWords": {
+            "自相": 228470692
+          }
+        }
       },
       {
         "name": "Từ điển Việt-Trung",
         "path": "LVVNCN10.DIT",
         "sha256": "4E5A9026BFF4B71F1D3685B71FEB6BC4D629C6C76872C9C635AA57C8A0ECB5B4",
         "type": "SQLite3",
-        "keywordEncoding": "windows-1258"
+        "keywordEncoding": "windows-1258",
+        "patches": {
+          "corruptedEntries": {
+            "Đại Vận Hà": "``大运河 &lt;中国古代伟大工程，北起北京，南到杭州，又名京杭运河，全长1794公里，是世界上最长运河，沟通海河、黄河、淮河、长江、钱塘江五大水系。始凿于公元前5世纪，公元7世纪和13世纪曾两次大规模 扩建，现河道主要为公元13世纪元朝所修(公元605-610年)。古代为中国南北运输大动脉，又称&quot;京杭大运 河&quot;，简称运河。&gt;",
+            "Hoàng Hà": "``大河 &lt;特指黄河。亦指较大的河流。&gt;``河; 黄河 &lt;中国第二长河，发源于青海，流入渤海，全长5464公里，流域面积75. 24万平方公里。流经黄土高原、夹带大量泥沙，每年达16亿吨，除12亿吨入海外，有4亿多吨沉积在下游河床上，有些地段河底竟高 出地面5-10米，成为有名的&quot;地上河&quot;。&gt;##phía tây Hoàng Hà~~河西。",
+            "sông Đà": "``沱江 &lt;又名黑水江，是红河的主要支流之一。&gt;",
+            "Tổ Xung Chi": "``祖冲之 &lt;(429-500)中国南北朝时期南朝数学家、天文学家。字文远，范阳遒(今河北涞水县)人。他在数学、天文历法、机械制造等方面都有重大贡献。在数学上，他吸收前人研究的成果，进一步把圆周率推算到小 数点，以后第7位，即3. 1415926到3. 1415927之间。他还用22/7表示p的约率，用355/113表示p的密率，比十六 世纪中叶德国的渥脱和荷兰的安托尼兹早1千多年。他的数学著作有《缀术》和《九章本义注》。在历法 上，制订了比当时通用《元嘉历》更好的《大明历》，规定一年为365. 24281481天，与现代天文学家测得数 值相比，仅差50秒。是当时精确度量高的历法。在机械制造上，他改造了指南车，制造了用水利推动的&quot; 水碓磨&quot;。&gt;",
+            "Thiên Khải": "``天启 &lt;明熹宗(朱由校)年号(公元1621 - 1627)。&gt;",
+            "Chính Đức": "``正德 &lt;明武宗(朱厚照)年号(公元1506-1521)。&gt;",
+            "Đại Biệt Sơn": "``大别山 &lt;湖北、安徽、河南三省交界处的山脉，西北-东南走向，为长江和淮河的分水岭，主峰1729米。中国茶叶的主要产区之一。&gt;",
+            "Đông Giang": "``东江 &lt;珠江的支流，发源于江西，在虎门入海，干流全长523公里，流域面积3. 2万方公里。&gt;",
+            "Gia Cát Lượng": "``诸葛亮 &lt;三国时蜀汉政治家，字孔明，辅佐刘备建立蜀汉。《三国演义》对他的智谋多所渲染，一般用来称足智多谋的人。&gt;##Đông Ngô mời Gia Cát Lượng từ chỗ Lưu Bị đến để bàn việc liên kết với nhau chống lại Tào Tháo.~~东吴从刘备那里请来诸葛亮，商量联合起来抵抗曹操。",
+            "Hải Hà": "``海河 &lt;中国华北地区最大水系，在天津注入渤海。海河干流长73公里，为五大河(潮白河、永定河、大清河、子牙河、大运河)汇合而成。流域总面积26. 5万平方公里。&gt;",
+            "Hoàng Sơn": "``黄山 &lt;中国名山，在安徽省东南部，主峰1841米，风景秀丽，以奇松、怪石、云海、温泉闻名于世，为重要风景旅游胜地。&gt;",
+            "Hoành Sơn": "**地``横山山脉。&lt;地名。位于越南中部广平、河静省间。&gt;",
+            "Hồng Hà": "``红河 &lt;发源于中国南部的亚洲东南部河流，流程约1，175公里(730英里)，大致向南穿过越南北部，经肥沃的三角洲流入东京湾。&gt;",
+            "Khai Nguyên": "``开元 &lt;唐玄宗(李隆基)年号(公元713-741)。&gt;",
+            "Ly Giang": "``漓 &lt;漓江，水名，在中国广西。&gt;",
+            "Nam Triều": "``南朝 &lt;宋、齐、梁、陈四朝的合称。参看(南北朝)。&gt;",
+            "Phú Quốc": "``富国 &lt; 岛。越南地名。越南南部岛屿之一。属于坚江省份。&gt;",
+            "Phục Hy": "``伏羲 &lt;中国古代传说中的人物。古帝，即太昊。《白虎通考》：&quot;三皇者，何谓也?伏羲、神农、燧人也&quot;。按：伏羲，亦作&quot;伏戏&quot;、&quot;皇羲&quot;、&quot;宓牺&quot;、&quot;包牺&quot;。风姓。有胜德。始画八封：造书契：教 民佃、渔、畜牧。都陈。相传在位115年，传十五世，凡千二百六十载。&gt;",
+            "Phúc Kiến": "``福；建；福建。&lt;中国的省名。其地旧以福州、建宁二府为主，故各取其首字而得名。东濒东海，南濒南海，西界江西，北界浙江，西南界广东，面积约十二万一千一百方公里，省会为福州市。&gt;##quýt Phúc Kiến~~福橘##hoa lan Phúc Kiến.~~建兰。##sơn Phúc Kiến.~~建漆。",
+            "Quan Hán Khanh": "``关汉卿 &lt;(约1210-约1300)中国元朝戏剧家。大都(今北京)人。曾任太医尹。一生从事戏曲创作活动。与马致远、白朴、郑光祖并称&quot;元曲四大家&quot;。所作或创作杂剧今知60多种，散曲10余套。作品大多数以社会下 层人物为主人公，深刻揭露社会的腐败和黑暗。现存有《窦娥冤》、&quot;救风尘&quot;、《拜月亭》、《调风月》、《望江亭》、《单刀会》、《蝴蝶梦》、《玉镜台》、《金线池》、《谢天香》、《绯衣梦》、《西 蜀梦》、《哭存孝》等共十三种：《哭香囊》、《春衫记》、《梦良盗骨》三种仅存残曲。&gt;",
+            "Thái Xương": "``泰昌 &lt;明光宗(朱常洛)年号(公元1620)。&gt;",
+            "Thiên Bảo": "``天宝 &lt;唐玄宗(李隆基)年号(公元742 - 756)。&gt;",
+            "Thượng Hải": "``上海；沪 &lt;城市名。位于江苏省黄浦江与吴淞江的会口处，居中国海岸线的中央，为西太平洋四大国际贸易港之一。交通便利，为国际海洋航线的辐辏地点，长江流域的门户，京沪﹑沪杭、萧甬铁路的交点。腹 地广大，工商业发达，为中国第一大城市、最大的商埠与经济中心。&gt;",
+            "Trường Giang": "``长江 &lt;中国的一大河，长6300公里，流域面积180多万平方公里，是世界第三大河。长江发源于青海唐古拉山，流经青海、西藏、云南、四川、湖北、湖南、江西、安徽、江苏、上海11个省市，流入东海。&gt;``大江 &lt;中国的长江。&gt;``江 &lt;(Jiāng)指长江。&gt;",
+            "Vạn Lịch": "``万历 &lt;明神宗(朱翊钧)年号(公元1573-1620)。&gt;",
+            "Cán Giang": "``赣；贑；赣江 &lt;江西省最大河流，注入鄱阳湖，长江中游重要支流，长758公里，流域面积8万多平方公里。&gt;",
+            "Hải Nam": 42,
+            "Hán Thuỷ": 68,
+            "Hắc Long Giang": 114,
+            "Hoa Nghiêm Tông": 40,
+            "Hoa Sơn": 45,
+            "Hoàng Hải": 52,
+            "Hoàng Thuỷ": 33,
+            "hồ Côn Minh": 61,
+            "hồ Hồng Trạch": 70,
+            "Kiến Hoà": 28,
+            "Kinh Hà": 28,
+            "Lạc Hà": 28,
+            "Lao Sơn": 29,
+            "Loan Hà": 28,
+            "Lý Khôi": 30,
+            "Lý Tiểu Long": 160,
+            "Mân Giang": 50,
+            "Nữ Oa": 27,
+            "Nghĩa Hoà Đoàn": 44,
+            "Nhĩ Hải": 37,
+            "Sán Đầu": 81,
+            "sông Hán": 18,
+            "sông Hồng Thuỷ": 46,
+            "Tương Giang": 31,
+            "Thẩm Dương": 34,
+            "Thiệu Hưng": 20,
+            "Thuận Trị": 42,
+            "Trường An": 40,
+            "Ung Giang": 24,
+            "Vị Hà": 29,
+            "Vĩnh Lạc": 38,
+            "Vĩnh Long": 32,
+            "vua Vũ": 33,
+            "Bắc Giang": 27,
+            "Cam Lộ": 28,
+            "Canh Thuỷ": 31,
+            "Điền Trì": 61,
+            "Đỗ Mục": 39,
+            "Hạ Môn": 22,
+            "Hàm Phong": 17,
+            "Đại Thành": 20,
+            "Đại Đồng": 21,
+            "vua Nghiêu": 21,
+            "Duy Hà": 22,
+            "Bồi Giang": 22,
+            "Chuyên Húc": 23,
+            "Bột Hải": 25,
+            "sông Tương": 26,
+            "chiến tranh nha phiến lần thứ nhất": 26,
+            "Hưng Nguyên": 26,
+            "Lễ Thuỷ": 26,
+            "Tuyên Đức": 26,
+            "Thăng Bình": 26,
+            "Thái Bình": 31,
+            "Khánh Lịch": 36,
+            "Tuyên Hoà": 36,
+            "vua Kiệt": 38,
+            "Đồng Trị": 40,
+            "Tuyên Thống": 44,
+            "Thái Sơn": 54,
+            "Chiết Giang": 77,
+            "Đỗ Phủ": 98
+          }
+        }
       },
       {
         "name": "Từ điển tiếng Việt",
         "path": "LvVNVN08.dit",
         "sha256": "984C4D82DEE6E083C8F3EBFF3530445FACAA94E21FF48A2886C0D2322E1ED10A",
         "type": "SQLite3",
-        "keywordEncoding": "windows-1258"
+        "keywordEncoding": "windows-1258",
+        "patches": {
+          "corruptedWords": {
+            "Zn": 2877811582,
+            "Hz": 3383316432,
+            "Al": 3971957192
+          },
+          "orphanedWords": [
+            "thuốc tẩy"
+          ]
+        }
       }
     ]
   },
@@ -38,14 +144,29 @@
         "path": "LvENVN08.dit",
         "sha256": "478557738AB2C27A7DC5250F60F871A10E616E84D9DAD09659584F8168D00B72",
         "type": "SQLite3",
-        "keywordEncoding": "windows-1252"
+        "keywordEncoding": "windows-1252",
+        "patches": {
+          "corruptedWords": {
+            "dpi": 2882411236,
+            "alb": 3701497050
+          },
+          "orphanedWords": [
+            "archinephridium",
+            "holdover audience"
+          ]
+        }
       },
       {
         "name": "Từ điển Việt-Anh",
         "path": "LvVNEN08.dit",
         "sha256": "5049FD23F90799A1F3537F4174251F611059D4406DE12D97ED31BD492EB7EA48",
         "type": "SQLite3",
-        "keywordEncoding": "windows-1252"
+        "keywordEncoding": "windows-1258",
+        "patches": {
+          "orphanedWords": [
+            "thuốc tẩy"
+          ]
+        }
       },
       {
         "name": "Từ điển Tiền tố, Hậu tố",
@@ -66,7 +187,12 @@
         "path": "LVVNVN.DIT",
         "sha256": "FA12D282198509686D7970ED6010789908B698971A2CB4D08F52914C8AFCC3E9",
         "type": "Berkeley",
-        "keywordEncoding": "windows-1258"
+        "keywordEncoding": "windows-1258",
+        "patches": {
+          "orphanedWords": [
+            "đạo đức học"
+          ]
+        }
       }
     ]
   },
@@ -80,21 +206,53 @@
         "path": "LVJAPANVN10.DIT",
         "sha256": "F95F1C7B3F0C514F86D4841748B1D8C946E472698244AA2983AC8DAE58BA08D1",
         "type": "SQLite3",
-        "keywordEncoding": "shift_jis"
+        "keywordEncoding": "shift_jis",
+        "patches": {
+          "corruptedWords": {
+            "洟､皃": 1338985147,
+            "蓐ﾑ": 1622871037,
+            "ｹ樋": 817807977,
+            "鰓ﾎ": 2253002974,
+            "瘍､": 3248254929
+          },
+          "orphanedWords": [
+            "アート紙",
+            "王都",
+            "じめいのり",
+            "黙止する"
+          ],
+          "substitutions": [
+            {
+              "words": [ "っこ" ],
+              "targets": [ "\u0081`ko" ],
+              "replacements": [ "-kko" ]
+            }
+          ]
+        }
       },
       {
         "name": "Từ điển Việt-Nhật",
         "path": "LVVNJAPAN10.DIT",
         "sha256": "01198063FC6CFE50BE62358A5B984BC9C7626E1941DDF679AD1F721B766C1AB4",
         "type": "SQLite3",
-        "keywordEncoding": "windows-1258"
+        "keywordEncoding": "windows-1258",
+        "patches": {
+          "orphanedWords": [
+            "thuốc tẩy"
+          ]
+        }
       },
       {
         "name": "Từ điển tiếng Việt",
         "path": "LVVNVN.DIT",
         "sha256": "FA12D282198509686D7970ED6010789908B698971A2CB4D08F52914C8AFCC3E9",
         "type": "Berkeley",
-        "keywordEncoding": "windows-1258"
+        "keywordEncoding": "windows-1258",
+        "patches": {
+          "orphanedWords": [
+            "đạo đức học"
+          ]
+        }
       }
     ]
   },
@@ -107,22 +265,48 @@
         "name": "Từ điển Pháp-Việt",
         "path": "LVFV2000.DIT",
         "sha256": "B9025C8F3ED0C2561086F70F6170E2F18F9DA764A4EA6CB372CA2A89706F6228",
-        "type": "MFCSerialized",
-        "keywordEncoding": "windows-1252"
+        "type": "MetakitArchive",
+        "keywordEncoding": "windows-1252",
+        "patches": {
+          "orphanedWords": [
+            "ichtyol",
+            "caracoler",
+            "tranchefile",
+            "raciner"
+          ],
+          "substitutions": [
+            {
+              "words": [ "fichue", "Hz", "tubulidenté", "vulvo-vaginite", "zythum" ],
+              "targets": [ "\u000B", "\u001A" ],
+              "replacements": [ "", "" ]
+            }
+          ]
+        }
       },
       {
         "name": "Từ điển Việt-Pháp",
         "path": "LvVF2000.dit",
         "sha256": "0A66DB77D151C37F0F647FFA63547E56670D6AA513D51BF223E6F3A1C48F9BAA",
-        "type": "MFCSerialized",
-        "keywordEncoding": "windows-1258"
+        "type": "MetakitArchive",
+        "keywordEncoding": "windows-1258",
+        "patches": {
+          "orphanedWords": [
+            "căn cứ địa",
+            "thuốc tẩy"
+          ]
+        }
       },
       {
         "name": "Từ điển tiếng Việt",
         "path": "LVVNVN.DIT",
         "sha256": "FA12D282198509686D7970ED6010789908B698971A2CB4D08F52914C8AFCC3E9",
         "type": "Berkeley",
-        "keywordEncoding": "windows-1258"
+        "keywordEncoding": "windows-1258",
+        "patches": {
+          "orphanedWords": [
+            "đạo đức học"
+          ]
+        }
       }
     ]
   },
@@ -150,7 +334,12 @@
         "path": "LVVNVN.DIT",
         "sha256": "FA12D282198509686D7970ED6010789908B698971A2CB4D08F52914C8AFCC3E9",
         "type": "Berkeley",
-        "keywordEncoding": "windows-1258"
+        "keywordEncoding": "windows-1258",
+        "patches": {
+          "orphanedWords": [
+            "đạo đức học"
+          ]
+        }
       }
     ]
   }
