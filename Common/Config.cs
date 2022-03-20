@@ -20,10 +20,15 @@ namespace Common
             public class Dict
             {
                 public string Name { get; set; }
+                public string ShortName { get; set; }
                 public string Path { get; set; }
                 public string Sha256 { get; set; }
                 public DbFileType? Type { get; set; }
                 public string KeywordEncoding { get; set; }
+                public string StyleSheet { get; set; }
+                public bool UseEastAsianFont { get; set; }
+                public bool UseMetaTitle { get; set; }
+                public bool FixBulletPoint { get; set; }
                 public class _Patches
                 {
                     public Dictionary<string, uint> CorruptedWords { get; set; }
@@ -46,20 +51,22 @@ namespace Common
 
         public class MarkupConfig
         {
-            public string Category { get; set; }
+            public string Meta { get; set; }
+            public string Meta2 { get; set; }
             public string Definition { get; set; }
             public string Example { get; set; }
             public string ExampleTranslation { get; set; }
-            public string OtherWord { get; set; }
             public string PhoneticNotation { get; set; }
             public string Idiom { get; set; }
             public string IdiomTranslation { get; set; }
             public string IdiomExample { get; set; }
             public string IdiomExampleTranslation { get; set; }
-            public string Definition2 { get; set; }
             public string Alternative { get; set; }
+            public string Tab { get; set; }
             public string Media { get; set; }
-            public string Entry { get; set; }
+            public string MetaTitle { get; set; }
+            public string NoBulletClass { get; set; }
+            public string EastAsianTextClass { get; set; }
         }
         public MarkupConfig ConfigMarkup { get; set; }
 

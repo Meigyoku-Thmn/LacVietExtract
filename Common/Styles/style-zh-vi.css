@@ -1,0 +1,210 @@
+﻿.EastAsianTextClass {
+    font-family: "Microsoft YaHei", SimSun, sans-serif;
+}
+
+Tab {
+    display: inline-block;
+    width: 1em;
+}
+
+a {
+    color: red;
+}
+
+PhoneticNotation {
+    display: block;
+    color: brown;
+    margin-bottom: 3px;
+    margin-top: 10px;
+}
+
+    PhoneticNotation::before {
+        content: '/';
+    }
+
+    PhoneticNotation::after {
+        content: '/';
+    }
+
+Alternative {
+    display: block;
+    margin-bottom: 3px;
+    margin-top: 20px;
+}
+
+    Alternative > a {
+        display: block;
+        color: black;
+        font-weight: bold;
+        font-size: 1.17em;
+    }
+
+Meta {
+    display: block;
+    color: blue;
+    font-weight: bold;
+    margin-left: 20px;
+    margin-bottom: 3px;
+    margin-top: 10px;
+}
+
+    Meta + Meta {
+        margin-top: 0px !important;
+    }
+
+    Meta::before {
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+        -webkit-transform: translateX(-0.5em);
+        transform: translateX(-0.5em);
+        content: '★';
+        color: red;
+    }
+
+Definition {
+    display: block;
+    margin-left: 40px;
+    margin-bottom: 3px;
+}
+
+    Definition::before {
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+        -webkit-transform: translateX(-0.5em);
+        transform: translateX(-0.5em);
+        content: '❏';
+        color: green;
+    }
+
+Meta2 {
+    display: block;
+    margin-bottom: 3px;
+    margin-top: 10px;
+}
+
+Meta + Meta2 {
+    margin-top: 0px !important;
+    margin-left: 20px;
+}
+
+Meta2 > br:first-of-type + a {
+    display: inline-block;
+    margin-top: 3px;
+}
+
+MetaTitle {
+    color: mediumblue;
+}
+
+Idiom {
+    display: block;
+    margin-left: 40px;
+    margin-bottom: 3px;
+}
+
+    Idiom::before {
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+        -webkit-transform: translateX(-0.5em);
+        transform: translateX(-0.5em);
+        content: '❏';
+        color: purple;
+    }
+
+IdiomTranslation {
+    display: block;
+    margin-left: 40px;
+    margin-bottom: 3px;
+}
+
+    IdiomTranslation::before {
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+        -webkit-transform: translateX(-0.2em);
+        transform: translateX(-0.2em);
+        content: '-';
+    }
+
+Example {
+    display: block;
+    color: red;
+    margin-left: 60px;
+    margin-bottom: 3px;
+}
+
+    Example::before {
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+        -webkit-transform: translateX(-0.2em);
+        transform: translateX(-0.2em);
+        content: '•';
+        color: red;
+    }
+
+Meta2 + Example {
+    margin-top: 10px !important;
+}
+
+ExampleTranslation {
+    display: block;
+    color: teal;
+    margin-left: 60px;
+    margin-bottom: 3px;
+}
+
+    ExampleTranslation::before {
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+        -webkit-transform: translateX(-0.2em);
+        transform: translateX(-0.2em);
+        content: '•';
+        color: transparent;
+    }
+
+IdiomExample {
+    display: block;
+    color: magenta;
+    margin-left: 60px;
+    margin-bottom: 3px;
+}
+
+    IdiomExample a {
+        color: inherit;
+    }
+
+    IdiomExample::before {
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+        -webkit-transform: translateX(-0.2em);
+        transform: translateX(-0.2em);
+        content: '•';
+        color: magenta;
+    }
+
+IdiomExampleTranslation {
+    display: block;
+    color: teal;
+    margin-left: 60px;
+    margin-bottom: 3px;
+}
+
+    IdiomExampleTranslation::before {
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+        -webkit-transform: translateX(-0.2em);
+        transform: translateX(-0.2em);
+        content: '•';
+        color: transparent;
+    }
+
+Media {
+    display: none;
+}

@@ -3,14 +3,13 @@ using MetaKitWrapper;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
 
 using static System.StringSplitOptions;
-using static Common.Helper;
+using static Common.Tools;
 
 namespace Common
 {
@@ -48,8 +47,12 @@ namespace Common
 
         public abstract IEnumerable<(uint hash, string word)> ReadWords();
         public abstract IEnumerable<(uint hash, string content)> ReadEntries();
+        public abstract int CountEntries();
         public abstract string ReadEntryData(string word, uint hash);
         public abstract void Dispose();
+
+        public static string IFF(string cond, string trueVal, string falseVal)
+            => $"CASE WHEN {cond} THEN {trueVal} ELSE {falseVal} END";
     }
 
     public class Sqlite3Connection : DictConnection
@@ -105,6 +108,15 @@ namespace Common
                 foreach (var word in _words)
                     yield return (HashKeyword(KeywordEncoding.GetBytes(word)), word);
             }
+        }
+
+        public override int CountEntries()
+        {
+            var query = $@"
+                SELECT COUNT(*)
+                FROM mabcdef
+            ";
+            return (int)(long)new SQLiteCommand(query, _conn).ExecuteScalar();
         }
 
         public override IEnumerable<(uint hash, string content)> ReadEntries()
@@ -194,6 +206,17 @@ namespace Common
 
         public override IEnumerable<(uint hash, string word)> ReadWords()
             => _block.Cursor().Select(e => (HashKeyword(e.Key.Data), KeywordEncoding.GetString(e.Key.Data)));
+
+        public override int CountEntries()
+        {
+            if (_content is not BTreeDatabase btree)
+                throw new NotImplementedException(
+                    "The Berkeley database is not BTreeDatabase, counting is not implemented in this case.");
+            var count = (int)btree.FastStats(null, Isolation.DEGREE_ONE).nKeys;
+            if (count == 0)
+                count = (int)btree.Stats(null, Isolation.DEGREE_ONE).nKeys;
+            return count;
+        }
 
         public override IEnumerable<(uint hash, string content)> ReadEntries()
         {
@@ -341,6 +364,15 @@ namespace Common
 
         public override IEnumerable<(uint hash, string word)> ReadWords()
             => _blocks.Select(e => (HashKeyword(KeywordEncoding.GetBytes(e.Key)), e.Key));
+
+        public override int CountEntries() => _blocks.Values
+            .Distinct()
+            .Select(idx => {
+                var conn = _conns[idx];
+                var viewIdx = conn.OpenView("content");
+                return conn.GetRowCount(viewIdx);
+            })
+            .Sum();
 
         public override IEnumerable<(uint hash, string content)> ReadEntries()
         {

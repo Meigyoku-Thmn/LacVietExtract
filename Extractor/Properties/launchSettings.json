@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Extractor": {
+      "commandName": "Project",
+      "commandLineArgs": "\"D:\\GoldenDict Data\""
+    }
+  }
+}

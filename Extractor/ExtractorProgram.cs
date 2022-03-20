@@ -1,11 +1,16 @@
 ﻿using Common;
+using Ionic.Zlib;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Extractor
 {
@@ -14,20 +19,19 @@ namespace Extractor
     using Words = Dictionary<string, uint>;
     using Entries = Dictionary<uint, Entry>;
 
-    public class Entry
-    {
-        public uint Hash;
-        public string Word;
-        public string Content;
-        public string RawContent;
-        public string[] ErrorMessages;
-    }
-
     class ExtractorProgram
     {
         static readonly Config config = Config.Get();
+        static readonly PropertyInfo[] MarkupKeywords = config.ConfigMarkup.GetType().GetProperties().ToArray();
+        static readonly Regex MarkupRegex = new(
+            string.Join('|', MarkupKeywords.Select(p => p.Name).OrderByDescending(e => e.Length)),
+            RegexOptions.Compiled);
+        static readonly Dictionary<string, object> MarkupMap =
+            new(MarkupKeywords.Select(p => KeyValuePair.Create(p.Name, p.GetValue(config.ConfigMarkup))));
         static void Main(string[] args)
         {
+            var watch = new Stopwatch();
+            watch.Start();
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
             Console.OutputEncoding = Encoding.Unicode;
@@ -39,60 +43,125 @@ namespace Extractor
 
             try { Directory.Delete("Corrupted Entries", true); }
             catch (DirectoryNotFoundException) { }
+            var hashPool = new HashSet<string>();
             foreach (var app in config.Apps)
             {
                 Log.Write($"Extracting '{app.Name}':");
                 Log.IndentLevel++;
                 foreach (var dict in app.Dicts)
                 {
+                    if (hashPool.Contains(dict.Sha256))
+                        continue;
+                    hashPool.Add(dict.Sha256);
                     Log.Write($"{dict.Name}:");
-                    Log.IndentLevel++;
-                    ProcessDict(app, dict, config.SeedsByName[app.Name]);
-                    Log.IndentLevel--;
+                    try
+                    {
+                        Log.IndentLevel++;
+                        ProcessDict(
+                            Path.Combine(args.FirstOrDefault() ?? "output", "Lạc Việt - " + dict.Name),
+                            app, dict, config.SeedsByName[app.Name]);
+                        Log.IndentLevel--;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
                 }
                 Log.IndentLevel--;
             }
+            watch.Stop();
+            Console.WriteLine($"Time taken: {watch.Elapsed}");
         }
 
 #if DEBUG
         static void ModifyConfigForDebugging(Config config)
         {
+            config.Apps = config.Apps.Where(e => e.Name == "Lạc Việt mtd CVH").ToArray();
+            config.Apps[0].Dicts = config.Apps[0].Dicts.Where(e => e.Name == "Từ điển Việt-Trung (Giản thể)").ToArray();
             return;
         }
 #endif
-
-        static void ProcessDict(Config.App app, Config.App.Dict dict, Seeds seeds)
+        const string OutputCssFileName = "style.css";
+        static readonly byte[] StyleRefBin = Encoding.UTF8.GetBytes(
+            $"<link rel=\"stylesheet\" href=\"{OutputCssFileName}\"/>"
+        );
+        static readonly SHA256 sha256Hasher = SHA256.Create();
+        static readonly Regex ControlCharRegex = new(@"[\x00-\x1F]", RegexOptions.Compiled);
+        static readonly Dictionary<string, string> CssPool = new();
+        static void ProcessDict(string outputDirPath, Config.App app, Config.App.Dict dict, Seeds seeds)
         {
             var dbPath = Path.Combine(app.Path, app.DictPath, dict.Path);
             var encoding = Encoding.GetEncoding(dict.KeywordEncoding);
             encoding = Encoding.GetEncoding(dict.KeywordEncoding,
                 encoding.EncoderFallback, new NullPreservingDecoderFallback());
 
-            using var con = DictConnection.Create(dbPath, dict.Type.Value, encoding, app.Name, seeds);
+            var fileHash = Convert.ToHexString(
+                sha256Hasher.ComputeHash(new FileStream(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)));
+            if (!fileHash.Equals(dict.Sha256, StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException(
+                    $"The database '{dict.Name}' ({dict.Path}) doesn't match the hash in configuration file.");
+
+            var con = DictConnection.Create(dbPath, dict.Type.Value, encoding, app.Name, seeds);
 
             var words = new Words();
             foreach (var (hash, word) in con.ReadWords())
                 words.TryAdd(word, hash);
             Log.Write($"Found {words.Count} words.");
 
-            var entries = new Entries(words.Count);
-            foreach (var (hash, _content) in con.ReadEntries())
+            var nEntries = con.CountEntries();
+            Console.Title = $"Queried 0 of {nEntries} entries";
+            var entries = new Entries(nEntries);
+            using (var prBar = new VtProgressBar() { Total = nEntries, Title = "Queried" })
             {
-                var (content, errorMessages) = Helper.ResolveLacVietMarkups(_content);
-                if (entries.TryAdd(hash, new Entry {
-                    Hash = hash,
-                    Content = content,
-                    ErrorMessages = errorMessages,
-                    RawContent = _content,
-                })) continue;
-                if (entries[hash].Content != content)
-                    throw new Exception($"Detected entries that have same hash ({hash}) but different contents!");
+                prBar.Initialize();
+                prBar.Tick(0);
+                foreach (var (hash, content, idx) in con.ReadEntries().Select((e, i) => (e.hash, e.content, i)))
+                {
+                    if (entries.TryAdd(hash, new Entry {
+                        Hash = hash,
+                        Content = content,
+                    }))
+                    {
+                        Console.Title = $"Queried {idx + 1} of {nEntries} entries";
+                        prBar.Tick();
+                        continue;
+                    }
+                    if (entries[hash].Content != content)
+                        throw new Exception($"Detected entries that have same hash ({hash}) but different contents!");
+                }
+            }
+
+            con.Dispose();
+
+            Log.Write("Apply pre-patches:");
+            Log.IndentLevel++;
+            Patching.PreApply(dict, words, entries);
+            Log.IndentLevel--;
+
+            Console.Title = $"Processed 0 of {nEntries} entries";
+            using (var prBar = new VtProgressBar() { Total = nEntries, Title = "Processed" })
+            {
+                prBar.Initialize();
+                prBar.Tick(0);
+                foreach (var (entry, idx) in entries.Values.Select((e, i) => (e, i)))
+                {
+                    var (content, errorMessages) = Markup.Resolve(entry.Content,
+                        useMetaTitle: dict.UseMetaTitle,
+                        fixBulletPoint: dict.FixBulletPoint,
+                        useEastAsianFont: dict.UseEastAsianFont
+                    );
+                    entry.RawContent = entry.Content;
+                    entry.Content = content;
+                    entry.ErrorMessages = errorMessages;
+                    Console.Title = $"Processed {idx + 1} of {nEntries} entries";
+                    prBar.Tick();
+                }
             }
             Log.Write($"Found {entries.Count} entries.");
 
-            Log.Write("Apply patches:");
+            Log.Write("Apply post-patches:");
             Log.IndentLevel++;
-            Patching.Apply(dict, words, entries);
+            Patching.PostApply(dict, words, entries);
             Log.IndentLevel--;
 
             // detect hash-duplicated words
@@ -197,23 +266,82 @@ namespace Extractor
                 }
             }
 
-            var outputDirPath = Path.Combine("All Entries", app.Name, dict.Name);
+            var dictFileName = dict.ShortName + ".dict";
+            var outputDictPath = Path.Combine(outputDirPath, dictFileName);
+            var outputIdxPath = Path.Combine(outputDirPath, dict.ShortName + ".idx.gz");
             Directory.CreateDirectory(outputDirPath);
-            var outputFilePath = Path.Combine(outputDirPath, dict.Name + "_out.txt");
-            var outputRawFilePath = Path.Combine(outputDirPath, dict.Name + "_raw.txt");
-            using var writer = new StreamWriter(outputFilePath);
-            using var rawWriter = new StreamWriter(outputRawFilePath);
-            foreach (var entry in entries.Values)
+
+            long idxFileSize = 0;
+            Console.Title = $"Wrote 0 of {entries.Count} entries";
+            using (var prBar = new VtProgressBar() { Total = entries.Count, Title = "Wrote" })
+            using (var dictStream = new FileStream(outputDictPath, FileMode.Create, FileAccess.Write))
+            using (var indexStream = new GZipStream(new FileStream(outputIdxPath, FileMode.Create, FileAccess.Write),
+                CompressionMode.Compress, CompressionLevel.BestCompression))
             {
-                writer.WriteLine($"Hash: {entry.Hash}");
-                writer.WriteLine($"Word: {entry.Word}");
-                writer.WriteLine(entry.Content);
-                writer.WriteLine();
-                rawWriter.WriteLine($"Hash: {entry.Hash}");
-                rawWriter.WriteLine($"Word: {entry.Word}");
-                rawWriter.WriteLine(entry.RawContent);
-                rawWriter.WriteLine();
+                var buffer = new byte[sizeof(int)];
+                var mappedSortedEntries = entries.Values.Select((e, i) => {
+                    var word = ControlCharRegex.Replace(e.Word, "").Trim().Normalize(NormalizationForm.FormC);
+                    var content = e.Content.Trim().Normalize(NormalizationForm.FormC);
+                    return new {
+                        idx = i,
+                        e.Hash,
+                        WordBin = Encoding.UTF8.GetBytes(word),
+                        ContentBin = Encoding.UTF8.GetBytes(content),
+                    };
+                }).OrderBy(e => e.WordBin, BinArrayComparer.StarDict);
+
+                prBar.Initialize();
+                prBar.Tick(0);
+
+                foreach (var entry in mappedSortedEntries)
+                {
+                    indexStream.Write(entry.WordBin);
+                    indexStream.Write(new byte[] { 0 });
+
+                    BinaryPrimitives.WriteInt32BigEndian(buffer, (int)dictStream.Position);
+                    indexStream.Write(buffer);
+                    BinaryPrimitives.WriteInt32BigEndian(buffer, StyleRefBin.Length + entry.ContentBin.Length);
+                    indexStream.Write(buffer);
+
+                    idxFileSize += entry.WordBin.Length + 9;
+
+                    dictStream.Write(StyleRefBin);
+                    dictStream.Write(entry.ContentBin);
+                    Console.Title = $"Wrote {entry.idx + 1} of {entries.Count} entries";
+                    prBar.Tick();
+                }
             }
+
+            var dictZipProc = Process.Start(new ProcessStartInfo("dictzip", $"\"{dictFileName}\"") {
+                UseShellExecute = false,
+                WorkingDirectory = outputDirPath,
+            });
+            dictZipProc.WaitForExit();
+            if (dictZipProc.ExitCode != 0)
+                throw new Exception("dictzip process has closed with the exit code " + dictZipProc.ExitCode);
+
+            File.WriteAllLines(Path.Combine(outputDirPath, dict.ShortName + ".ifo"), new[] {
+                "StarDict's dict ifo file",
+                "version=2.4.2",
+                $"wordcount={entries.Count}",
+                $"idxfilesize={idxFileSize}",
+                $"bookname=Lạc Việt - {dict.Name}",
+                "author=Meigyoku Thmn",
+                "email=tranhuynhminhngoc1994@gmail.com",
+                $"description={dict.Name} được trích xuất từ bộ từ điển Lạc Việt đến hết ngày 26/11/2021",
+                "sametypesequence=h",
+            });
+
+            Directory.CreateDirectory(Path.Combine(outputDirPath, "res"));
+
+            CssPool.TryGetValue(dict.StyleSheet, out var cssContent);
+            if (cssContent == null)
+            {
+                cssContent = File.ReadAllText(Path.Combine("Styles", dict.StyleSheet));
+                cssContent = MarkupRegex.Replace(cssContent, m => MarkupMap[m.Value].ToString());
+                CssPool[dict.StyleSheet] = cssContent;
+            }
+            File.WriteAllText(Path.Combine(outputDirPath, "res", OutputCssFileName), cssContent);
         }
     }
 }
