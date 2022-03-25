@@ -210,5 +210,66 @@ namespace Common
                 hashCode = HashKey[(byte)(hashCode ^ e)] ^ (hashCode >> 8);
             return ~hashCode;
         }
+
+        static readonly byte[] RtfKey = new byte[] {
+            0xF9, 0xAC, 0xEB, 0xF3, 0xEB, 0xEF, 0xF3
+        };
+        public static void DecryptAdditionalContentInPlace(Span<byte> data)
+        {
+            var size = data.Length;
+            var len1 = 8;
+            if (size <= 8)
+                len1 = size;
+            var len2 = 13;
+            if (size <= 13)
+                len2 = size;
+            var len3 = 507;
+            if (size <= 507)
+                len3 = size;
+            var len4 = 1023;
+            if (size <= 1023)
+                len4 = size;
+            var len5 = 3057;
+            if (size <= 3057)
+                len5 = size;
+            var len6 = 4073;
+            if (size <= 4073)
+                len6 = size;
+            var len7 = 5043;
+            if (size <= 5043)
+                len7 = size;
+            var keyIdx = size % 7;
+            var i = 0;
+            for (; i < len1; ++i)
+                data[i] ^= RtfKey[keyIdx];
+            var isOddIdx = keyIdx % 2;
+            if (isOddIdx != 0)
+                for (; i < len2; ++i)
+                    data[i] ^= (byte)0x8Cu;
+            else
+                for (; i < len2; ++i)
+                    data[i] ^= (byte)0xF9u;
+            for (; i < len3; ++i)
+                data[i] ^= (byte)0xACu;
+            for (; i < len4; ++i)
+                data[i] ^= (byte)0xEBu;
+            for (; i < len5; ++i)
+                data[i] ^= (byte)0xF3u;
+            for (; i < len6; ++i)
+                data[i] ^= (byte)0xEBu;
+            for (; i < len7; ++i)
+                data[i] ^= (byte)0xEFu;
+            if (isOddIdx != 0)
+            {
+                for (; i < size; ++i)
+                    data[i] ^= (byte)0xF3u;
+                return;
+            }
+            if (i >= size)
+                return;
+            do
+                data[i++] ^= (byte)0x8Cu;
+            while (i < size);
+        }
     }
 }

@@ -76,8 +76,8 @@ namespace Extractor
 #if DEBUG
         static void ModifyConfigForDebugging(Config config)
         {
-            config.Apps = config.Apps.Where(e => e.Name == "Lạc Việt mtd CVH").ToArray();
-            config.Apps[0].Dicts = config.Apps[0].Dicts.Where(e => e.Name == "Từ điển Việt-Trung (Giản thể)").ToArray();
+            config.Apps = config.Apps.Where(e => e.Name == "Lạc Việt mtd EVA").ToArray();
+            config.Apps[0].Dicts = config.Apps[0].Dicts.Where(e => e.Name == "Từ điển Anh-Việt").ToArray();
             return;
         }
 #endif

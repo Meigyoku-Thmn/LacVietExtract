@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "DbReader": {
-      "commandName": "Project",
-      "commandLineArgs": "\"C:\\Program Files (x86)\\mtd10CVH\""
-    }
-  }
-}

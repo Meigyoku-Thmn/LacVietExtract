@@ -272,6 +272,7 @@ namespace Common
                     var blockName = Encoding.ASCII.GetString(reader.ReadBytes(reader.ReadByte()));
 
                     reader.BaseStream.Seek(dataPos, SeekOrigin.Begin);
+                    
                     ResolveAndExtract(tempDirName, blockName, reader.ReadBytes(dataSize));
                 }
             }
@@ -302,7 +303,7 @@ namespace Common
         {
             var outputPath = Path.Combine(outputDirPath, name);
 
-            if (name.StartsWith("Content") || name.StartsWith("CT") || name == "INFOR")
+            if (name.StartsWith("Content") || name.StartsWith("CT"))
             {
                 using var gzip = new GZipStream(new MemoryStream(data), CompressionMode.Decompress);
                 using var outputStream = File.Create(outputPath + ".mk");
@@ -325,18 +326,6 @@ namespace Common
             else
             {
                 File.WriteAllBytes(outputPath + ".dump", data);
-            }
-
-            if (name == "INFOR")
-            {
-                var encoding = Encoding.GetEncoding(1258);
-                var texts = new List<string>();
-                using (var reader = new BinaryReader(File.OpenRead(outputPath + ".mk")))
-                    while (reader.BaseStream.Position < reader.BaseStream.Length)
-                        texts.Add(encoding.GetString(reader.ReadBytes(reader.ReadByte())));
-                File.WriteAllLines(outputPath + ".txt", texts
-                    .Where(e => e.Length > 0 && e.All(c => c >= ' ')));
-                File.Delete(outputPath + ".mk");
             }
         }
 
