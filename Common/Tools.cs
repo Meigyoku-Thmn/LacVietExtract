@@ -211,10 +211,10 @@ namespace Common
             return ~hashCode;
         }
 
-        static readonly byte[] RtfKey = new byte[] {
+        static readonly byte[] ExtraContentKey = new byte[] {
             0xF9, 0xAC, 0xEB, 0xF3, 0xEB, 0xEF, 0xF3
         };
-        public static void DecryptAdditionalContentInPlace(Span<byte> data)
+        public static void DecryptExtraContentInPlace(Span<byte> data)
         {
             var size = data.Length;
             var len1 = 8;
@@ -241,7 +241,7 @@ namespace Common
             var keyIdx = size % 7;
             var i = 0;
             for (; i < len1; ++i)
-                data[i] ^= RtfKey[keyIdx];
+                data[i] ^= ExtraContentKey[keyIdx];
             var isOddIdx = keyIdx % 2;
             if (isOddIdx != 0)
                 for (; i < len2; ++i)
