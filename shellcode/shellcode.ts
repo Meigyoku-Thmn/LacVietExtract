@@ -7,7 +7,7 @@ import {
 
 sendCommand('Ping');
 
-const logFile = new File("D:/Draftbook/LacVietHack/log2.txt" as any, "wb") as any;
+const logFile = new File("D:/Draftbook/LacVietHack/logs/log2.txt" as any, "wb") as any;
 
 const RefBaseOffset = 0xB00000;
 
