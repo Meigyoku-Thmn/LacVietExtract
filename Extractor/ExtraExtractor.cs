@@ -3,7 +3,6 @@ using HtmlAgilityPack;
 using SharpScss;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -11,7 +10,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
 
 namespace Extractor
 {
@@ -54,18 +52,18 @@ namespace Extractor
             {
                 switch (cat)
                 {
-                    //case "thesaurus":
-                    //    AddNewContents(ProcessThesaurus(app, dict, seeds, extra, entries));
-                    //    break;
-                    //case "relatedWords":
-                    //    AddNewContents(ProcessRelatedWords(app, dict, seeds, extra, entries));
-                    //    break;
-                    //case "occurences":
-                    //    AddNewContents(ProcessOccurences(app, dict, seeds, extra, entries));
-                    //    break;
-                    //case "images":
-                    //    ProcessImageDict(app, dict, seeds, extra, entries);
-                    //    break;
+                    case "thesaurus":
+                        AddNewContents(ProcessThesaurus(app, dict, seeds, extra, entries));
+                        break;
+                    case "relatedWords":
+                        AddNewContents(ProcessRelatedWords(app, dict, seeds, extra, entries));
+                        break;
+                    case "occurences":
+                        AddNewContents(ProcessOccurences(app, dict, seeds, extra, entries));
+                        break;
+                    case "images":
+                        ProcessImageDict(app, dict, seeds, extra, entries);
+                        break;
                     case "grammar":
                         ProcessGrammarDict(app, dict, seeds, extra, entries);
                         break;
@@ -709,8 +707,6 @@ namespace Extractor
                 resStream.CreateEntryFromFile(filePath, Path.GetFileName(filePath));
 
             Tools.CopyIcoOrPng(Path.Combine("Icons", extra.ShortName), Path.Combine(outputDirPath, extra.ShortName));
-
-            throw new NotImplementedException();
         }
     }
 }
