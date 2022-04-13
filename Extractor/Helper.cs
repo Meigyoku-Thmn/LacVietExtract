@@ -11,7 +11,7 @@ namespace Extractor
     using static NativeApi;
     using static NativeApi.ConsoleModes;
     using static NativeApi.StdHandleNumber;
-    static class Tools
+    static class Helper
     {
         static readonly Regex VtTermRegex = new(string.Join('|', new[] {
             "^xterm", // xterm, PuTTY, Mintty

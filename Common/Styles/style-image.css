@@ -1,0 +1,100 @@
+﻿.headline {
+    margin-left: 8px;
+}
+
+d-image {
+    display: inline-block;
+    font-size: 0.8em;
+    line-height: 1.05em;
+    position: relative;
+    overflow: hidden;
+    margin: 8px;
+}
+
+    d-image:hover {
+        outline: solid;
+        outline-width: 2.5px;
+    }
+
+    d-image > img {
+        height: 113px;
+        width: auto;
+    }
+
+    d-image > d-content {
+        position: absolute;
+        left: 0em;
+        right: 0em;
+        bottom: 0em;
+        background-color: rgba(70, 130, 180, 0.81);
+        padding: 0.1em 0.4em;
+        color: white;
+        height: 2.4em;
+    }
+
+d-topic-image {
+    display: inline-block;
+    font-size: 0.8em;
+    line-height: 1.2em;
+    position: relative;
+    margin: 8px;
+}
+
+    d-topic-image:hover {
+        outline: solid;
+    }
+
+    d-topic-image > img {
+        vertical-align: top;
+        height: 102px;
+        width: auto;
+    }
+
+    d-topic-image > .pos-mark {
+        height: 0;
+    }
+
+    d-topic-image > d-content {
+        position: absolute;
+        left: 0em;
+        right: 0em;
+        background-color: DodgerBlue;
+        padding: 0.1em 0.4em;
+        color: white;
+        height: 2.6em;
+    }
+
+    d-topic-image > .padding-mark {
+        padding: 0.1em 0.4em;
+        height: 2.6em;
+    }
+
+d-category-image {
+    display: inline-block;
+    position: relative;
+    margin: 8px;
+}
+
+    d-category-image:hover {
+        outline: solid;
+    }
+
+    d-category-image > img {
+        float: left;
+    }
+
+    d-category-image > d-content {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 260px;
+        background-color: DodgerBlue;
+        padding: 0.4em;
+        color: white;
+    }
+
+    d-category-image > .padding-mark {
+        display: inline-block;
+        padding: 0.4em;
+        width: 260px;
+    }

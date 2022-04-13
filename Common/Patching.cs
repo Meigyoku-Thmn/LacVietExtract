@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Common
 {
     using Words = Dictionary<string, uint>;
-    using Entries = Dictionary<uint, Entry>;
+    using Entries = Dictionary<uint, DiEntry>;
 
     public class Patching
     {

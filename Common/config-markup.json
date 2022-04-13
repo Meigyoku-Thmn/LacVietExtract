@@ -14,5 +14,7 @@
   "Media": "d-media",
   "MetaTitle": "d-meta-title",
   "NoBulletClass": "no-bullet",
-  "EastAsianTextClass": "east"
+  "EastAsianTextClass": "east",
+  "OneIndent": "one-indent",
+  "RelatedWords": "related-words"
 }

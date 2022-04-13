@@ -9,6 +9,8 @@ namespace Common
 {
     using SeedGroups = Dictionary<string, Dictionary<uint, string>>;
     using SeedGroups2 = Dictionary<string, Dictionary<string, string>>;
+    using CorruptedEntries = Dictionary<string, object>;
+    using Extras = Dictionary<string, Config.App.Dict._Extra>;
 
     public class Config
     {
@@ -28,21 +30,35 @@ namespace Common
                 public string StyleSheet { get; set; }
                 public bool UseEastAsianFont { get; set; }
                 public bool UseMetaTitle { get; set; }
+                public string PrefixedChineseWordListPattern { get; set; }
                 public bool FixBulletPoint { get; set; }
+                public _Patches Patches { get; set; }
                 public class _Patches
                 {
                     public Dictionary<string, uint> CorruptedWords { get; set; }
                     public string[] OrphanedWords { get; set; }
                     public Dictionary<string, object> CorruptedEntries { get; set; }
+                    public Substitution[] Substitutions { get; set; }
                     public class Substitution
                     {
                         public string[] Words { get; set; }
                         public string[] Targets { get; set; }
                         public string[] Replacements { get; set; }
                     }
-                    public Substitution[] Substitutions { get; set; }
                 }
-                public _Patches Patches { get; set; }
+                public Dictionary<string, _Extra> Extra { get; set; }
+                public class _Extra
+                {
+                    public string Name { get; set; }
+                    public string ShortName { get; set; }
+                    public string[] Path { get; set; }
+                    public string[] Sha256 { get; set; }
+                    public DbFileType[] Type { get; set; }
+                    public string KeywordEncoding { get; set; }
+                    public string StyleSheet { get; set; }
+                    public Dictionary<string, string> FileNameMap { get; set; }
+                    public _Patches Patches { get; set; }
+                }
             }
             public Dict[] Dicts { get; set; }
         }
@@ -67,10 +83,12 @@ namespace Common
             public string MetaTitle { get; set; }
             public string NoBulletClass { get; set; }
             public string EastAsianTextClass { get; set; }
+            public string OneIndent { get; set; }
+            public string RelatedWords { get; set; }
         }
         public MarkupConfig ConfigMarkup { get; set; }
 
-        Config() { }
+        private Config() { }
 
         static readonly Config config;
         static Config() => config = Open();
@@ -86,8 +104,12 @@ namespace Common
 
             var apps = JsonSerializer.Deserialize<App[]>(File.ReadAllText("config.json"), jsonOptions);
 
-            foreach (var crpEntries in apps.SelectMany(
-                app => app.Dicts.Select(dict => dict.Patches?.CorruptedEntries ?? new Dictionary<string, object>())))
+            var crpEntryGroups = apps
+                .SelectMany(app => app.Dicts
+                    .Select(dict => dict.Patches?.CorruptedEntries ?? new CorruptedEntries()))
+                .Concat(apps.SelectMany(a => a.Dicts.SelectMany(d => d.Extra?.Values ?? new Extras().Values)
+                    .Select(dict => dict.Patches?.CorruptedEntries ?? new CorruptedEntries())));
+            foreach (var crpEntries in crpEntryGroups)
             {
                 foreach (var (key, value) in crpEntries.ToArray())
                 {
@@ -100,14 +122,16 @@ namespace Common
                 }
             }
 
-            var seedsByName2 = JsonSerializer.Deserialize<SeedGroups2>(File.ReadAllText("config-seeds.json"), jsonOptions);
+            var seedsByName2 = JsonSerializer.Deserialize<SeedGroups2>(
+                File.ReadAllText("config-seeds.json"), jsonOptions);
             var seedsByName = seedsByName2.ToDictionary(
                 seedGroup => seedGroup.Key, seedGroup => seedGroup.Value.ToDictionary(
                     seed => ParseNumber(seed.Key), seed => seed.Value
                 )
             );
 
-            var configMarkup = JsonSerializer.Deserialize<MarkupConfig>(File.ReadAllText("config-markup.json"), jsonOptions);
+            var configMarkup = JsonSerializer.Deserialize<MarkupConfig>(
+                File.ReadAllText("config-markup.json"), jsonOptions);
 
             return new Config {
                 Apps = apps,

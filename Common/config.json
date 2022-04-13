@@ -14,6 +14,7 @@
         "styleSheet": "style-zh-vi.css",
         "useEastAsianFont": true,
         "useMetaTitle": true,
+        "prefixedChineseWordListPattern": "(<d-meta2><d-meta-title>Từ ghép:<\\/d-meta-title>)(.+?)(<\\/d-meta2>)",
         "patches": {
           "corruptedWords": {
             "自相": 228470692
@@ -32,7 +33,7 @@
         "patches": {
           "corruptedEntries": {
             "Đại Vận Hà": "``<span class=\"east\">大运河 &lt;中国古代伟大工程，北起北京，南到杭州，又名京杭运河，全长1794公里，是世界上最长运河，沟通海河、黄河、淮河、长江、钱塘江五大水系。始凿于公元前5世纪，公元7世纪和13世纪曾两次大规模 扩建，现河道主要为公元13世纪元朝所修(公元605-610年)。古代为中国南北运输大动脉，又称&quot;京杭大运 河&quot;，简称运河。&gt;</span>",
-            "Hoàng Hà": "``<span class=\"east\">大河 &lt;特指黄河。亦指较大的河流。&gt;</span>``<span class=\"east\">河; 黄河 &lt;中国第二长河，发源于青海，流入渤海，全长5464公里，流域面积75. 24万平方公里。流经黄土高原、夹带大量泥沙，每年达16亿吨，除12亿吨入海外，有4亿多吨沉积在下游河床上，有些地段河底竟高 出地面5-10米，成为有名的&quot;地上河&quot;。&gt;</span>##phía tây Hoàng Hà~~<span class=\"east\">河西。</span>",
+            "Hoàng Hà": "``<span class=\"east\">大河 &lt;特指黄河。亦指较大的河流。&gt;</span>``<span class=\"east\">河; 黄河 &lt;中国第二长河，发源于青海，流入渤海，全长5464公里，流域面积75. 24万平方公里。流经黄土高原、夹带大量泥沙，每年达16亿吨，除12亿吨入海外，有4亿多吨沉积在下游河床上，有些地段河底竟高 出地面5-10米，成为有名的&quot;地上河&quot;。&gt;</span>##phía tây Hoàng Hà~~<span class=\"east\">河西。</span>",
             "sông Đà": "``<span class=\"east\">沱江 &lt;又名黑水江，是红河的主要支流之一。&gt;</span>",
             "Tổ Xung Chi": "``<span class=\"east\">祖冲之 &lt;(429-500)中国南北朝时期南朝数学家、天文学家。字文远，范阳遒(今河北涞水县)人。他在数学、天文历法、机械制造等方面都有重大贡献。在数学上，他吸收前人研究的成果，进一步把圆周率推算到小 数点，以后第7位，即3. 1415926到3. 1415927之间。他还用22/7表示p的约率，用355/113表示p的密率，比十六 世纪中叶德国的渥脱和荷兰的安托尼兹早1千多年。他的数学著作有《缀术》和《九章本义注》。在历法 上，制订了比当时通用《元嘉历》更好的《大明历》，规定一年为365. 24281481天，与现代天文学家测得数 值相比，仅差50秒。是当时精确度量高的历法。在机械制造上，他改造了指南车，制造了用水利推动的&quot; 水碓磨&quot;。&gt;</span>",
             "Thiên Khải": "``<span class=\"east\">天启 &lt;明熹宗(朱由校)年号(公元1621 - 1627)。&gt;</span>",
@@ -165,6 +166,254 @@
             "archinephridium",
             "holdover audience"
           ]
+        },
+        "extra": {
+          "thesaurus": {
+            "name": "Từ điển Đồng nghĩa, Trái nghĩa",
+            "path": [
+              "LvTHESAURUS.dit"
+            ],
+            "sha256": [
+              "98AE7C6AFAF7BA0B39708F2029D97977AB2EE9B7918BA38F17E2CACF1E792877"
+            ],
+            "type": [
+              "MetakitArchive"
+            ]
+          },
+          "relatedWords": {
+            "name": "Từ liên quan"
+          },
+          "occurences": {
+            "name": "Mục từ có xuất hiện",
+            "path": [
+              "LVCOPIDX/_0.lfs",
+              "LVCOPIDX/lvsgmnts.gen",
+              "LVCOPIDX/lvsgmnts_3"
+            ],
+            "sha256": [
+              "37E1DF76D58EABF298E118BF375E9EFA18DC963E3A2EBF6E587F267CD1F92996",
+              "A85DC4276747F5B0D095EFFC9BF32BBD8ABE34EE86ECF97AE988F34200A45562",
+              "FCF1F279408D60099D1DC4E14E7DE6E9D4E0E9DD54AA778DA267DA646B0B267F"
+            ],
+            "type": [
+              "Lucene"
+            ],
+            "fileNameMap": {
+              "_0.lfs": "_0.cfs",
+              "lvsgmnts.gen": "segments.gen",
+              "lvsgmnts_3": "segments_3"
+            }
+          },
+          "images": {
+            "name": "Từ điển tiếng Anh hình ảnh",
+            "shortName": "lv-[en-vi]-image",
+            "path": [
+              "LvImageDb.lvz",
+              "Image.lvz"
+            ],
+            "sha256": [
+              "D23C0DD968724609E55DB1503214648C405346412748E653FF29D82F671D930F",
+              "13CCB82EB0FDD13AACC08988ADD5FE183C921D182B8A3B210D748313744494BF"
+            ],
+            "type": [
+              "SQLite3",
+              "ImageArchive"
+            ],
+            "styleSheet": "style-image.css",
+            "script": "image-script.js"
+          },
+          "grammar": {
+            "name": "Từ điển văn phạm tiếng Anh",
+            "shortName": "lv-[en-vi]-grammar",
+            "path": [
+              "grammar.lvz"
+            ],
+            "sha256": [
+              "0AD1A3916E4AFC107253E1E68D8413D88783042ABE8C2B4CDE8AFE1CF7E48A1C"
+            ],
+            "type": [
+              "SQLite3"
+            ],
+            "styleSheet": "style-grammar.css",
+            "patches": {
+              "corruptedEntries": {
+                "Present Continuous (Thì hiện tại tiếp diễn) (1) - Exercise": 1792
+              },
+              "substitutions": [
+                {
+                  "words": [ "Whose is this - it is john - Exercise" ],
+                  "targets": [ "<$B. Viết lại câu sử dụng dấu nháy đơn (‘), dùng This is hoặc These are." ],
+                  "replacements": [ "<$B. Viết lại câu sử dụng dấu nháy đơn (‘), dùng This is hoặc These are.>" ]
+                },
+                {
+                  "words": [ "Articles (1) a, an or the (Mạo từ a, an hoặc the) - Exercise" ],
+                  "targets": [ "<|Y>" ],
+                  "replacements": [ "<Y>" ]
+                },
+                {
+                  "words": [ "I and me (subject and object pronouns) (I và me (đại từ làm chủ từ và túc từ)) - Exercise" ],
+                  "targets": [ "<$C.  Điền đại từ làm túc từ (me, you…) vào chỗ trống>." ],
+                  "replacements": [ "\n<$C.  Điền đại từ làm túc từ (me, you…) vào chỗ trống>.\n" ]
+                },
+                {
+                  "words": [ "Verb-ing - like and would like (Động từ thêm ing - like và would like) - Exercise" ],
+                  "targets": [ "<___________|@|Driving" ],
+                  "replacements": [ "<___________|@|Driving>" ]
+                },
+                {
+                  "words": [ "Reported speech (Câu tường thuật) (2) - Exercise" ],
+                  "targets": [
+                    "<_________|@|Yes, and I told him not to be late.",
+                    "<_________|@|Ben to make some sweet cakes>"
+                  ],
+                  "replacements": [
+                    "<_________|@|Yes, and I told him not to be late>.",
+                    "<Ben to make some sweet cakes>"
+                  ]
+                },
+                {
+                  "words": [ "Past Simple or Present Perfect (Sử dụng thì quá khứ đơn hay hiện tại hoàn thành) - Exercise" ],
+                  "targets": [ "<___________|I’ve enjoyed|*I enjoyed" ],
+                  "replacements": [ "<___________|I’ve enjoyed|*I enjoyed>" ]
+                },
+                {
+                  "words": [ "Active and passive (2) (Chủ động và bị động) - Exercise" ],
+                  "targets": [ "|@|>was interviewed" ],
+                  "replacements": [ "|@|was interviewed>" ]
+                },
+                {
+                  "words": [ "Adjectives (Tính từ) - Exercise" ],
+                  "targets": [ "|@comfortable" ],
+                  "replacements": [ "|@|comfortable" ]
+                },
+                {
+                  "words": [ "Comparative and Superlative patterns (Mẫu so sánh hơn và so sánh nhất) (2) - Exercise" ],
+                  "targets": [ "“a lot colder”." ],
+                  "replacements": [ "“a lot colder”.>" ]
+                },
+                {
+                  "words": [ "Demonstrative and indefinite pronouns (Đại từ chỉ định và đại từ bất định) - Exercise" ],
+                  "targets": [ "<no ones were|*no one was>" ],
+                  "replacements": [ "<________|no ones were|*no one was>" ]
+                },
+                {
+                  "words": [ "Determiners (Từ hạn định) - Exercise" ],
+                  "targets": [ "> " ],
+                  "replacements": [ "" ]
+                },
+                {
+                  "words": [ "Ellipsis (Sự tỉnh lược) - Exercise", "Substitution - so and do so (Sự thay thế - so và do so) - Exercise" ],
+                  "targets": [ " or __ (= nothing)" ],
+                  "replacements": [ ", or leave blank if not needed" ]
+                },
+                {
+                  "words": [ "Have something done - Exercise" ],
+                  "targets": [ "tested?", "filled?", "yesterday?" ],
+                  "replacements": [ "tested>?", "filled>?", "yesterday>?" ]
+                },
+                {
+                  "words": [ "Have something done (Cấu trúc sai khiến, nhờ vả - Have something done) - Exercise" ],
+                  "targets": [ "I earn enough money" ],
+                  "replacements": [ "<___________|@|I earn enough money" ]
+                },
+                {
+                  "words": [ "Have to - Exercise" ],
+                  "targets": [ "@do you have" ],
+                  "replacements": [ "@|do you have" ]
+                },
+                {
+                  "words": [ "It may - could - must - have been - Exercise" ],
+                  "targets": [ "driven so fast\n" ],
+                  "replacements": [ "driven so fast>\n" ]
+                },
+                {
+                  "words": [ "Manner clauses with as, as if, as though… (Mệnh đề chỉ thể cách với as, as if, as though…) - Exercise" ],
+                  "targets": [ "Is the new English restaurant as good________________________?\n<Is the new English restaurant as good as everyone has been saying?>" ],
+                  "replacements": [ "Is the new English restaurant as good <as everyone has been saying>?" ]
+                },
+                {
+                  "words": [ "On Friday, for lunch - Exercise" ],
+                  "targets": [ "(Saturday)<Saturday>", "(Saturday) <________|@|the Saturday>" ],
+                  "replacements": [ "(Saturday) <Saturday>", "(Saturday) <the Saturday>" ]
+                },
+                {
+                  "words": [ "Plural nouns; one and ones (Danh từ số nhiều; one và ones) - Exercise" ],
+                  "targets": [ "(7) one>" ],
+                  "replacements": [ "(7) <_________|@|one>" ]
+                },
+                {
+                  "words": [ "Preposition or linking word + -ing form (Giới từ hoặc từ liên kết + dạng -ing) - Exercise" ],
+                  "targets": [ "<________|@|after taking>" ],
+                  "replacements": [ "<after taking>" ]
+                },
+                {
+                  "words": [ "Present Perfect Continuous (Thì hiện tại hoàn thành tiếp diễn)​ - Exercise" ],
+                  "targets": [ "they have been arguing|they’ve been arguing>" ],
+                  "replacements": [ "<___________|@|they have been arguing|they’ve been arguing>" ]
+                },
+                {
+                  "words": [ "Prison, school, bed… - Exercise" ],
+                  "targets": [ "(prison)<________|@|prison>", "(prison) <________|@|the prison>" ],
+                  "replacements": [ "(prison) <prison>", "(prison) <the prison>" ]
+                },
+                {
+                  "words": [ "Phrasal verbs (Động ngữ) - Exercise" ],
+                  "targets": [ "(4) breath out>" ],
+                  "replacements": [ "(4) <_____________|@|breath out>" ]
+                },
+                {
+                  "words": [ "Relative clause (Mệnh đề quan hệ) (2) - Exercise" ],
+                  "targets": [ "viết chữ Y." ],
+                  "replacements": [ "viết chữ ✔." ]
+                },
+                {
+                  "words": [ "Reported questions (Câu hỏi gián tiếp) - Exercise" ],
+                  "targets": [ "@|Could you tell me how long the film lasts" ],
+                  "replacements": [ "@|Could you tell me how long the film lasts>" ]
+                },
+                {
+                  "words": [ "Short answers (Câu trả lời ngắn)​ - Exercise" ],
+                  "targets": [ "*It’s all right, thanks." ],
+                  "replacements": [ "*It’s all right, thanks.>" ]
+                },
+                {
+                  "words": [ "Should - ought to - had better - Exercise" ],
+                  "targets": [ "@had better not" ],
+                  "replacements": [ "@|had better not" ]
+                },
+                {
+                  "words": [ "The old, the rich, etc. - Exercise" ],
+                  "targets": [ "people”:" ],
+                  "replacements": [ "people”:>" ]
+                },
+                {
+                  "words": [ "Verbs, auxiliary verbs and tenses (Động từ, trợ động từ và các thì) - Exercise" ],
+                  "targets": [ "being|analyzed" ],
+                  "replacements": [ "being|analyzed>" ]
+                },
+                {
+                  "words": [ "Will, would, shall and should - Exercise" ],
+                  "targets": [ "“should”.", "“stand”." ],
+                  "replacements": [ "“should”.>", "“stand”.>" ]
+                },
+                {
+                  "words": [ "Future (Thì tương lai) - Exercise" ],
+                  "targets": [ "_|Y>" ],
+                  "replacements": [ "_|@|Y>" ]
+                },
+                {
+                  "words": [ "The uses of conditionals (Cách dùng câu điều kiện) - Exercise" ],
+                  "targets": [ "_|a>", "_|e>", "_|b>", "_|d>" ],
+                  "replacements": [ "_|@|a>", "_|@|e>", "_|@|b>", "_|@|d>" ]
+                },
+                {
+                  "words": [ "Conditionals (Câu điều kiện) (1) - Exercise" ],
+                  "targets": [ "|@|*I ask", "|@|*there", "|@|*it’s", "|@|isn’t", "|@|*share", "|@|*I see", "|@|I ask" ],
+                  "replacements": [ "|*I ask", "|*there", "|*it’s", "|isn’t", "|*share", "|*I see", "|I ask" ]
+                }
+              ]
+            }
+          }
         }
       },
       {

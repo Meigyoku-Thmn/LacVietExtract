@@ -5,12 +5,34 @@
 
 a {
     color: red;
+    text-decoration: none;
 }
+
+    a:hover {
+        background-color: yellow;
+    }
+
+.RelatedWords {
+    color: initial;
+}
+
+    .RelatedWords::before {
+        content: '-';
+    }
+
+    .RelatedWords > a {
+        color: inherit;
+    }
+
+        .RelatedWords > a:hover {
+            background-color: greenyellow;
+        }
 
 PhoneticNotation {
     display: block;
     color: brown;
     margin-bottom: 3px;
+    margin-top: 10px;
 }
 
     PhoneticNotation::before {
@@ -34,6 +56,10 @@ Alternative {
         font-size: 1.17em;
     }
 
+        Alternative > a:hover {
+            background-color: greenyellow;
+        }
+
 Meta {
     display: block;
     color: blue;
@@ -51,6 +77,10 @@ Meta {
         transform: translateX(-0.5em);
         content: '★';
         color: red;
+    }
+
+    Meta + PhoneticNotation {
+        margin-top: initial;
     }
 
 Definition {
@@ -121,6 +151,10 @@ Example {
     margin-bottom: 3px;
 }
 
+    Example.OneIndent {
+        margin-left: 40px;
+    }
+
     Example::before {
         display: inline-block;
         width: 1em;
@@ -188,4 +222,8 @@ IdiomExampleTranslation {
 
 Media {
     display: none;
+}
+
+link + * {
+    margin-top: initial;
 }

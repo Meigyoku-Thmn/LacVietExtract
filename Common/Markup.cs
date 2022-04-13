@@ -2,11 +2,14 @@
 using RtfPipe;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Common
 {
@@ -23,7 +26,7 @@ namespace Common
         static readonly Regex FauxTagRegex = new(@"<super>|<subs>\w+<\/subs>|<subs>", RegexOptions.Compiled);
         static readonly Regex FauxTagAndGlitchRegex2 =
             new(@"<china>|<super>\w{0,1}|<subs>\d*|\(方>|\(古>|\(口>|\(书>", RegexOptions.Compiled);
-        const string CAT = "**";
+        const string META = "**";
         const string DEF = "``";
         const string EG = "##";
         const string EG_TSL = "~~";
@@ -45,7 +48,7 @@ namespace Common
         const string RTFHeader = @"\x01[\x03-\x05](\d+)";
         const string FF = "\x0C";
         static readonly Regex RtfHeaderMarkupRegex = new(RTFHeader, RegexOptions.Compiled);
-        static readonly Regex DictMarkupRegex = new(string.Join('|', new[] { CAT, DEF, EG, EG_TSL, REF, PRONO_OPEN, PRONO_CLOSE, IDIOM, IDIOM_TSL, IDIOM_EG, IDIOM_EG_TSL, DEF2, ALT, MEDIA_OPEN, MEDIA_CLOSE, NEWLINE, NEWLINE2, TAB, FF }.Select(e => Regex.Escape(e))) + $"|{RTF}", RegexOptions.Compiled);
+        static readonly Regex DictMarkupRegex = new(string.Join('|', new[] { META, DEF, EG, EG_TSL, REF, PRONO_OPEN, PRONO_CLOSE, IDIOM, IDIOM_TSL, IDIOM_EG, IDIOM_EG_TSL, DEF2, ALT, MEDIA_OPEN, MEDIA_CLOSE, NEWLINE, NEWLINE2, TAB, FF }.Select(e => Regex.Escape(e))) + $"|{RTF}", RegexOptions.Compiled);
         static readonly Config.MarkupConfig Markups = config.ConfigMarkup;
         static readonly string[] TagsToUnwrap = new[] { "usage", "http:", "mean_jp" };
         static readonly string[] TagsToRemove = new[] { "left", "input", "c" };
@@ -122,14 +125,32 @@ namespace Common
                     else
                         return MarkHead(text.TrimStart());
                 }
+                void AppendTextContent(string text)
+                {
+                    if (markupStack.Count > 0)
+                    {
+                        var (tag, textProcessed) = markupStack.Pop();
+                        if (!textProcessed && tag == Markups.Meta)
+                        {
+                            text = text.TrimStart();
+                            textProcessed = true;
+                            if (text.Length > 1)
+                                text = char.ToUpper(text[0]) + text[1..];
+                            else if (text.Length == 1)
+                                text = text.ToUpper();
+                        }
+                        markupStack.Push((tag, textProcessed));
+                    }
+                    contentBuilder.Append(TrimHead(text));
+                }
                 var markupMatch = DictMarkupRegex.Match(content, currentPos);
                 if (!markupMatch.Success)
                 {
-                    contentBuilder.Append(TrimHead(content[currentPos..]));
+                    AppendTextContent(content[currentPos..]);
                     CloseTags();
                     break;
                 }
-                contentBuilder.Append(TrimHead(content[currentPos..markupMatch.Index]));
+                AppendTextContent(content[currentPos..markupMatch.Index]);
                 currentPos = markupMatch.Index + markupMatch.Length;
 
                 var rtfHeaderMatch = RtfHeaderMarkupRegex.Match(markupMatch.Value);
@@ -149,7 +170,7 @@ namespace Common
                 {
                     EnterTag("br", false);
                 }
-                else if (markupMatch.Value == CAT)
+                else if (markupMatch.Value == META)
                 {
                     CloseTags();
                     EnterTag(Markups.Meta);
@@ -238,8 +259,9 @@ namespace Common
             return (content, errorMessages);
         }
 
-        public static (string content, string[] errorMessages) Resolve(
-            string content, bool useMetaTitle = false, bool fixBulletPoint = false, bool useEastAsianFont = false)
+        public static (string content, string[] errorMessages) Resolve(string content,
+            bool useMetaTitle = false, bool fixBulletPoint = false,
+            bool useEastAsianFont = false, Regex chinesePrefixedListRegex = null)
         {
             var errorMessages = Array.Empty<string>();
 
@@ -423,7 +445,202 @@ namespace Common
                 fixBulletPoint: fixBulletPoint
             );
 
+            if (chinesePrefixedListRegex != null)
+            {
+                content = chinesePrefixedListRegex.Replace(content, m => {
+                    doc.LoadHtml(m.Groups[2].Value);
+                    var xpath = ".//br[position() > 1][not(self::node()[not(following-sibling::*)])]";
+                    foreach (var br in doc.DocumentNode.SelectNodes(xpath)?.ToArray() ?? Array.Empty<HtmlNode>())
+                    {
+                        var commaSpan = doc.CreateElement("span");
+                        commaSpan.AddClass(Markups.EastAsianTextClass);
+                        commaSpan.InnerHtml = "、";
+                        br.ParentNode.ReplaceChild(commaSpan, br);
+                    }
+                    var lastBr = doc.DocumentNode.SelectSingleNode(".//br[last()]");
+                    if (lastBr != null)
+                        lastBr.Remove();
+                    return string.Concat(m.Groups[1].Value, doc.DocumentNode.InnerHtml, m.Groups[3].Value);
+                });
+            }
+
             return (content, errorMessages.Concat(errorMessages2).ToArray());
+        }
+
+        static readonly string[] BoolChrs = new[] { "x", "v", "y", "n" };
+        static readonly string[] TruthyChrs = new[] { "v", "y" };
+        static readonly string[] FalsyChrs = new[] { "x", "n" };
+        static readonly Regex BlankLineRegex = new(@"^\s+$", RegexOptions.Multiline | RegexOptions.Compiled);
+        static readonly Regex AffirmNegateRegex = new(@"(?<=[(:;,‘<]\s*)\w+(?=\s*[>)’])", RegexOptions.Compiled);
+        static readonly Regex AffirmNegateRegex2 = new(@"✔+|✘+", RegexOptions.Compiled);
+        static readonly Regex ExampleAnswerRegex = new("<(.+?)>", RegexOptions.Compiled | RegexOptions.Singleline);
+        static readonly Regex SectionRegex = new(@"^<\$(?<text>.+?)>(?<rest>.*)$",
+            RegexOptions.Compiled | RegexOptions.Singleline);
+        static readonly Regex SingleChoiceRegex =
+            new(@"^(?:(?<pre>.*?)<\s*(?<blank>(?:_+?\s*[^<>]+?\s*_*?)|(?:_*?\s*[^<>]+?\s*_+?))\s*\|@\|(?<answers>.+?)>)+(?<rest>.*)$",
+            RegexOptions.Compiled | RegexOptions.Singleline);
+        static readonly Regex MultipleChoiceRegex =
+            new(@"^(?:(?<pre>.*?)<\s*(?<blank>_+)\s*\|(?<choices>[^<>]+?)>)+(?<rest>.*)$",
+            RegexOptions.Compiled | RegexOptions.Singleline);
+        const string ExampleTitle = "Vi du:";
+        public static string ResolveExercise(string rawContent)
+        {
+            rawContent = BlankLineRegex.Replace(rawContent, "");
+            static string ReplaceAffirmNegate(string input) => AffirmNegateRegex.Replace(input, m => {
+                if (m.Value.All(e => TruthyChrs.Contains(char.ToLower(e).ToString())))
+                    return new string('✔', m.Value.Length);
+                else if (m.Value.All(e => FalsyChrs.Contains(char.ToLower(e).ToString())))
+                    return new string('✘', m.Value.Length);
+                return m.Value;
+            });
+            static string ReplaceBold(string input, bool useSplit = false) => ExampleAnswerRegex.Replace(input, m => {
+                if (useSplit)
+                    return string.Join(" / ", m.Groups[1].Value.Split('|').Select(e => $"<b>{e.Trim()}</b>"));
+                else
+                    return $"<b>{m.Groups[1].Value.Trim()}</b>";
+            });
+            static bool IsExampleLine(string txt)
+                => Tools.RemoveDiacritics(txt[0..ExampleTitle.Length]).StartsWith(ExampleTitle);
+
+            var lines = rawContent
+                .Split("\n\n", StringSplitOptions.RemoveEmptyEntries)
+                .Select(line => line.Trim().TrimStart('\uFEFF'))
+                .Where(line => line.Length > 0);
+
+            var outputBuilder = new StringBuilder();
+
+            var issueName = 0;
+            foreach (var baseLine in lines)
+            {
+                var line = baseLine;
+                var gotoHasBeenDone = false;
+            LOOP_START:
+                issueName++;
+                Match m;
+                if (!gotoHasBeenDone && (m = SectionRegex.Match(line)).Success)
+                {
+                    var text = ReplaceBold(ReplaceAffirmNegate(m.Groups["text"].Value + m.Groups["rest"].Value));
+                    outputBuilder.Append($"<h4>{text}</h4>");
+                }
+                else if (!gotoHasBeenDone && IsExampleLine(line))
+                {
+                    var examples = line[ExampleTitle.Length..]
+                        .Split("\n", StringSplitOptions.RemoveEmptyEntries)
+                        .Select(line => line.Trim().TrimStart('\uFEFF'))
+                        .Where(line => line.Length > 0);
+
+                    outputBuilder.Append("<p class=\"eg-title\">Ví dụ:</p><ul class=\"eg-list\">");
+
+                    foreach (var example in examples)
+                    {
+                        var modExample = ReplaceBold(ReplaceAffirmNegate(example), useSplit: true);
+                        outputBuilder.Append($"<li>{modExample}</li>");
+                    }
+
+                    outputBuilder.Append("</ul>");
+                }
+                // some questions has "semi-blank" fields, each has an existing word and you have to type words around it.
+                else if ((m = SingleChoiceRegex.Match(line)).Success)
+                {
+                    var groups = m.Groups["pre"].Captures.Select(e => ReplaceBold(ReplaceAffirmNegate(e.Value)))
+                        .Zip(m.Groups["blank"].Captures.Select(e => e.Value))
+                        .Zip(m.Groups["answers"].Captures.Select(e =>
+                            e.Value.Split('|')
+                                .Select(s => ReplaceBold(ReplaceAffirmNegate(s).Trim()))))
+                        .Select(e => (e.First.First, e.First.Second, e.Second));
+
+                    if (!gotoHasBeenDone)
+                        outputBuilder.Append("<p>");
+
+                    foreach (var (pre, blank, answers) in groups)
+                    {
+                        // #: leave blank as an answer
+                        var modBlank = blank;
+                        if (modBlank.StartsWith("_"))
+                            modBlank = "_____" + modBlank.TrimStart('_');
+                        if (modBlank.Length != "_____".Length && modBlank.EndsWith("_"))
+                            modBlank = modBlank.TrimEnd('_') + "____";
+                        var preText = pre.Replace("\n", "<br>");
+                        outputBuilder.Append(preText)
+                            .Append(!modBlank.StartsWith('_') || !modBlank.EndsWith('_') ? $" {modBlank} " : "")
+                            .Append("<input type=\"text\">")
+                            .Append($" <d-answers>({string.Join('/', answers.Select(e => $"<d-answer>{e}</d-answer>"))})</d-answers>");
+                    }
+
+                    var rest = m.Groups["rest"].Value.Trim();
+                    if (rest.Length > 0)
+                    {
+                        line = rest;
+                        gotoHasBeenDone = true;
+                        goto LOOP_START;
+                    }
+
+                    outputBuilder.Append("</p>");
+                }
+                else if ((m = MultipleChoiceRegex.Match(line)).Success)
+                {
+                    var groups = m.Groups["pre"].Captures.Select(e => ReplaceBold(ReplaceAffirmNegate(e.Value)))
+                        .Zip(m.Groups["blank"].Captures.Select(e => e.Value))
+                        .Zip(m.Groups["choices"].Captures.Select(e =>
+                            e.Value.Split('|').Select(s =>
+                                ReplaceBold(ReplaceAffirmNegate(s).Trim()))).ToArray())
+                        .Select(e => (e.First.First, e.First.Second, e.Second));
+
+                    if (!gotoHasBeenDone)
+                        outputBuilder.Append("<p>");
+
+                    foreach (var (pre, blank, choices) in groups)
+                    {
+                        var preText = pre.Replace("\n", "<br>");
+                        var answer = choices.First(e => e.StartsWith("*"))?.TrimStart('*');
+                        var modChoices = choices.Select(e => e.TrimStart('*')).ToArray().AsEnumerable();
+                        if (modChoices.All(ch => BoolChrs.Contains(ch.ToLower())))
+                            modChoices = modChoices.Select(ch => TruthyChrs.Contains(ch.ToLower()) ? "✔" : "✘");
+                        var choiceSeq = string.Join('/', modChoices
+                            .Select(e =>
+                                $"<d-choice " +
+                                    (e == answer ? $"class=\"answer\" " : "") +
+                                    $"name=\"iss-{issueName}\">" +
+                                    $"{e}<d-oval></d-oval>" +
+                                $"</d-choice>"
+                            )
+                        );
+                        var modBlank = blank;
+                        if (modBlank.StartsWith("_"))
+                            modBlank = "_____" + modBlank.TrimStart('_');
+                        if (modBlank.Length != "_____".Length && modBlank.EndsWith("_"))
+                            modBlank = modBlank.TrimEnd('_') + "____";
+                        outputBuilder.Append($"{preText} {modBlank} ({choiceSeq}) ");
+                        issueName++;
+                    }
+
+                    var rest = m.Groups["rest"].Value.Trim();
+                    if (rest.Length > 0)
+                    {
+                        line = rest;
+                        gotoHasBeenDone = true;
+                        goto LOOP_START;
+                    }
+
+                    outputBuilder.Append("</p>");
+                }
+                else
+                {
+                    var example = ReplaceBold(ReplaceAffirmNegate(line), useSplit: true).Replace("\n", "<br>");
+                    if (gotoHasBeenDone)
+                        outputBuilder.Append($"{example}</p>");
+                    else
+                        outputBuilder.Append($"<p>{example}</p>");
+                }
+            }
+
+            return AffirmNegateRegex2.Replace(outputBuilder.ToString(), m => {
+                if (m.Value[0] == '✔')
+                    return $"<d-tick>{m.Value}</d-tick>";
+                else if (m.Value[0] == '✘')
+                    return $"<d-cross>{m.Value}</d-cross>";
+                return m.Value;
+            });
         }
     }
 }

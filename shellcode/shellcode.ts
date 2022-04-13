@@ -12,12 +12,14 @@ const logFile = new File("D:/Draftbook/LacVietHack/log2.txt" as any, "wb") as an
 const RefBaseOffset = 0xB00000;
 
 let lineNumber = 0;
-function getLineNumber() {
+function getLineNumber(noCount = false) {
+   if (noCount)
+      return lineNumber
    return lineNumber++;
 }
 
-function logWriteLine(str: string) {
-   const lineNumber = getLineNumber();
+function logWriteLine(str: string, noCount = false) {
+   const lineNumber = getLineNumber(noCount);
    logFile.write(lineNumber.toString());
    logFile.write(": ");
    logFile.write(str);
@@ -43,35 +45,46 @@ const FileHandlePool = new Map<number, {
 }>();
 
 const TargetFileNames = [
-   'LVFV2000.DIT'
+   'image.lvz'
 ].map(e => e.toLowerCase());
 const mtdDataLIBName = 'mtdDataLIB.dll';
+const mainModuleName = 'mtd2012.exe';
 
 const mtdDataLIB = Module.load(mtdDataLIBName);
+const mainModule = Module.load(mainModuleName);
 
 function norm_mtdDataLIB_addr(addr: NativePointer): NativePointer {
    return addr.sub(mtdDataLIB.base).add(RefBaseOffset)
 }
+function norm_addr(addr: NativePointer): NativePointer {
+   return addr.sub(mainModule.base).add(RefBaseOffset)
+}
 
 function logStackTrace(context: CpuContext) {
    printBackTrace(context, Backtracer.FUZZY, e => {
-      logWriteLine(`${e.address}\t${e.moduleName}!${e.name}`);
+      logWriteLine(`${norm_addr(e.address)}\t${e.moduleName}!${e.name}`, true);
       const flags = GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT;
       try {
          const hModule = GetModuleHandleExA(flags, e.address.toUInt32());
          if (hModule.toUInt32() == mtdDataLIB.base.toUInt32())
-            logWriteLine(`  Guess VA in mtdDataLIB.dll ${norm_mtdDataLIB_addr(e.address)}`);
+            logWriteLine(`  Guess VA in mtdDataLIB.dll ${norm_mtdDataLIB_addr(e.address)}`, true);
       } catch { }
    });
 }
 
 (function patchCFileDisableBuffering() {
-   var cFileCtor = Module.findBaseAddress(mtdDataLIBName).add(0x00BC32F4 - RefBaseOffset);
-   Interceptor.attach(cFileCtor, {
+   var dllcFileCtor = Module.findBaseAddress(mtdDataLIBName).add(0x00BC3484 - RefBaseOffset);
+   var cFileCtor = Module.findBaseAddress(mainModuleName).add(0x00C0550A - RefBaseOffset);
+   Interceptor.attach(dllcFileCtor, {
       onEnter(args) {
          args[1].or(0x10000);
       },
    });
+   Interceptor.attach(cFileCtor, {
+      onEnter(args) {
+         args[1].or(0x10000);
+      },
+   })
 })();
 
 (function trackCreateFile() {
@@ -79,6 +92,7 @@ function logStackTrace(context: CpuContext) {
    Interceptor.attach(pCreateFileA, {
       onEnter(args) {
          const fileName = args[0].readCString().toLowerCase();
+         console.log(fileName);
          this.fileName = TargetFileNames.find(name => fileName.endsWith(name))
          if (this.fileName != null) {
             this.fileId = getId();
@@ -142,7 +156,7 @@ function logStackTrace(context: CpuContext) {
             var lineNumber = logWriteLine(`ReadFile: (${file.id}) 0x${nToRead.toString(16)} byte(s) ${file.fileName} ${hexDump} (${strDump})`);
          }
 
-         if (lineNumber == 1902)
+         if (lineNumber == 9)
             logStackTrace(this.context);
 
          if (nToRead === 1)

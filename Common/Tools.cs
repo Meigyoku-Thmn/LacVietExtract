@@ -1,8 +1,12 @@
-﻿using System;
+﻿using Ionic.Zlib;
+using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -12,17 +16,93 @@ namespace Common
 
     public static class Tools
     {
-        static readonly Regex ReservedCharRegex = new(@":|\/|\?|#|\[|]|@|!|\$|&|'|\(|\)|\*|\+|,|;|=", RegexOptions.Compiled);
+        static readonly Config config = Config.Get();
+        static readonly Regex ReservedCharRegex = new(@":|\/|\?|#|\[|]|@|!|\$|&|'|\(|\)|\*|\+|,|;|=|<|>", RegexOptions.Compiled);
         public static string UrlEncodeMinimal(string value)
             => ReservedCharRegex.Replace(value, m => $"%{(int)m.Value[0]:X2}");
 
         public static bool CopyIfNewer(string sourcePath, string destPath)
         {
-            if (File.GetLastWriteTimeUtc(sourcePath) <= File.GetLastWriteTimeUtc(destPath))
+            DateTime sourceModifiedTime;
+            DateTime destModifiedTime;
+            var isDir = Directory.Exists(sourcePath);
+            if (!isDir)
+            {
+                sourceModifiedTime = File.GetLastWriteTimeUtc(sourcePath);
+                destModifiedTime = File.GetLastWriteTimeUtc(destPath);
+            }
+            else
+            {
+                sourceModifiedTime = Directory.EnumerateFiles(sourcePath)
+                    .Select(path => File.GetLastWriteTimeUtc(path))
+                    .Max();
+                destModifiedTime = Directory.EnumerateFiles(destPath)
+                    .Select(path => File.GetLastWriteTimeUtc(path))
+                    .Max();
+            }
+
+            if (sourceModifiedTime <= destModifiedTime)
                 return false;
-            Directory.CreateDirectory(Path.GetDirectoryName(destPath));
-            File.Copy(sourcePath, destPath, true);
+
+            if (!isDir)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(destPath));
+                File.Copy(sourcePath, destPath, true);
+            }
+            else
+            {
+                Directory.CreateDirectory(destPath);
+                foreach (var filePath in Directory.EnumerateFiles(sourcePath))
+                    File.Copy(filePath, Path.Combine(destPath, Path.GetFileName(filePath)), true);
+            }
             return true;
+        }
+
+        public static bool CopyIcoOrPng(string sourcePath, string destPath)
+        {
+            if (File.Exists(sourcePath + ".png"))
+            {
+                sourcePath += ".png";
+                destPath += ".png";
+            }
+            else if (File.Exists(sourcePath + ".ico"))
+            {
+                sourcePath += ".ico";
+                destPath += ".ico";
+            }
+            else
+                return false;
+            File.Copy(Path.Combine(sourcePath), Path.Combine(destPath), true);
+            return true;
+        }
+
+        public static string RemoveDiacritics(string text)
+        {
+            var normalizedString = text.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder(capacity: normalizedString.Length);
+
+            for (int i = 0; i < normalizedString.Length; i++)
+            {
+                char c = normalizedString[i];
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                    stringBuilder.Append(c);
+            }
+
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+        public static void RenameByFileNameMap(string targetPath, Dictionary<string, string> fileNameMap)
+        {
+            IEnumerable<string> filePaths;
+            if (Directory.Exists(targetPath))
+                filePaths = Directory.EnumerateFiles(targetPath);
+            else
+                filePaths = new[] { targetPath };
+
+            foreach (var filePath in filePaths)
+                if (fileNameMap.TryGetValue(Path.GetFileName(filePath), out var newFileName))
+                    File.Move(filePath, Path.Combine(Path.GetDirectoryName(filePath), newFileName));
         }
 
         public static string ReplaceInvalidChars(this string content, char replace = '_')
@@ -44,7 +124,7 @@ namespace Common
                 return sb.ToString();
             }
             return content;
-        }        
+        }
 
         // circumflex, breve, horn
         static readonly char[] VietnameseDiacritics = new[] {
@@ -270,6 +350,121 @@ namespace Common
             do
                 data[i++] ^= (byte)0x8Cu;
             while (i < size);
+        }
+
+        #region StartDict configuration
+        static readonly PropertyInfo[] MarkupKeywords = config.ConfigMarkup.GetType().GetProperties().ToArray();
+        static readonly Regex MarkupRegex = new(
+            string.Join('|', MarkupKeywords.Select(p => p.Name).OrderByDescending(e => e.Length)),
+            RegexOptions.Compiled);
+        static readonly Dictionary<string, object> MarkupMap =
+            new(MarkupKeywords.Select(p => KeyValuePair.Create(p.Name, p.GetValue(config.ConfigMarkup))));
+        static readonly Dictionary<string, string> CssPool = new();
+        const string OutputCssFileName = "style.css";
+        static readonly byte[] StyleRefBin = Encoding.UTF8.GetBytes(
+            $"<link rel=\"stylesheet\" href=\"{OutputCssFileName}\"/>"
+        );
+        static readonly Regex ControlCharRegex = new(@"[\x00-\x1F]", RegexOptions.Compiled);
+        #endregion
+        public static void WriteStarDict(string outputDirPath, string fileNameBase,
+            string dictName, string styleSheetFileName, string description, IEnumerable<IEntry> entries,
+            bool sameTypeHtml = true,
+            Action<int> progressCallback = null, Action<string, string> styleSheetCallback = null)
+        {
+            var dictFileName = fileNameBase + ".dict";
+            var outputDictPath = Path.Combine(outputDirPath, dictFileName);
+            var outputIdxPath = Path.Combine(outputDirPath, fileNameBase + ".idx.gz");
+
+            int nWord = 0;
+            long idxFileSize = 0;
+            using (var dictStream = new FileStream(outputDictPath, FileMode.Create, FileAccess.Write))
+            using (var indexStream = new GZipStream(new FileStream(outputIdxPath, FileMode.Create, FileAccess.Write),
+                CompressionMode.Compress, CompressionLevel.BestCompression))
+            {
+                var buffer = new byte[sizeof(int)];
+                var mappedSortedEntries = entries.Select((e, i) => {
+                    var word = ControlCharRegex.Replace(e.Word, "").Trim().Normalize();
+                    var content = e.Content.Trim();
+                    return new {
+                        idx = i,
+                        UseStyleRef = e.UseStyleRef,
+                        Type = e.Type,
+                        WordBin = Encoding.UTF8.GetBytes(word),
+                        ContentBin = Encoding.UTF8.GetBytes(content),
+                    };
+                }).OrderBy(e => e.WordBin, BinArrayComparer.StarDict);
+
+                foreach (var entry in mappedSortedEntries)
+                {
+                    indexStream.Write(entry.WordBin);
+                    indexStream.Write(new byte[] { 0 });
+
+                    // write position
+                    BinaryPrimitives.WriteInt32BigEndian(buffer, (int)dictStream.Position);
+                    indexStream.Write(buffer);
+
+                    var size = 0;
+                    // write size
+                    if (entry.UseStyleRef)
+                        size = StyleRefBin.Length + entry.ContentBin.Length;
+                    else
+                        size = entry.ContentBin.Length;
+                    if (!sameTypeHtml)
+                        size += 1 + 1;
+                    BinaryPrimitives.WriteInt32BigEndian(buffer, size);
+                    indexStream.Write(buffer);
+
+                    idxFileSize += entry.WordBin.Length + 1 + 4 + 4;
+
+                    if (!sameTypeHtml)
+                        dictStream.Write(new[] { (byte)entry.Type });
+                    if (entry.UseStyleRef)
+                        dictStream.Write(StyleRefBin);
+                    dictStream.Write(entry.ContentBin);
+                    if (!sameTypeHtml)
+                        dictStream.Write(new byte[] { 0 });
+
+                    nWord++;
+                    progressCallback?.Invoke(entry.idx);
+                }
+            }
+
+            var dictZipProc = Process.Start(new ProcessStartInfo("dictzip", $"\"{dictFileName}\"") {
+                UseShellExecute = false,
+                WorkingDirectory = outputDirPath,
+            });
+            dictZipProc.WaitForExit();
+            if (dictZipProc.ExitCode != 0)
+                throw new Exception("dictzip process has closed with the exit code " + dictZipProc.ExitCode);
+
+            File.WriteAllLines(Path.Combine(outputDirPath, fileNameBase + ".ifo"), new[] {
+                "StarDict's dict ifo file",
+                "version=3.0.0",
+                $"wordcount={nWord}",
+                $"idxfilesize={idxFileSize}",
+                $"bookname=Lạc Việt - {dictName}",
+                "author=Meigyoku Thmn",
+                "email=tranhuynhminhngoc1994@gmail.com",
+                $"date=",
+                $"description={description}",
+            }.Concat(sameTypeHtml ? new[] { "sametypesequence=h" } : Array.Empty<string>()));
+
+            CssPool.TryGetValue(styleSheetFileName, out var cssContent);
+            if (cssContent == null)
+            {
+                cssContent = File.ReadAllText(Path.Combine("Styles", styleSheetFileName));
+                cssContent = MarkupRegex.Replace(cssContent, m => MarkupMap[m.Value].ToString());
+                CssPool[styleSheetFileName] = cssContent;
+            }
+            if (styleSheetCallback != null)
+            {
+                styleSheetCallback(OutputCssFileName, cssContent);
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.Combine(outputDirPath, "res"));
+                File.WriteAllText(Path.Combine(outputDirPath, "res", OutputCssFileName), cssContent);
+            }
         }
     }
 }

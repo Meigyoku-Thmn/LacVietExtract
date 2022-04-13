@@ -3,7 +3,7 @@ import * as frida from 'frida';
 import { Message, MessageType, Script, ScriptMessageHandler, ScriptRuntime, Session } from 'frida';
 import { spawnSync } from 'child_process';
 
-const TargetPath = "C:/Program Files (x86)/LacViet/mtdFVP/mtd2012_dbg.exe";
+const TargetPath = "C:/Program Files (x86)/LacViet/mtdEVA/mtd2012.exe";
 // const TargetPath = "D:/Draftbook/LacVietHack/test.exe";
 const ShellCodeConfigPath = './tsconfig.shellcode.json';
 const ShellCodePath = './.build/shellcode.js';

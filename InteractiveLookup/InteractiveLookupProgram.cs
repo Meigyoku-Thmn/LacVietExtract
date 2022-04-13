@@ -160,14 +160,14 @@ namespace InteractiveLookup
                 }
                 Console.WriteLine();
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine(normalizedKeyword.Normalize(NormalizationForm.FormC) + $" ({hash})");
+                Console.WriteLine(normalizedKeyword.Normalize() + $" ({hash})");
                 Console.ForegroundColor = DefaultColor;
                 foreach (var item in ParseAndFormat(config, content))
                 {
                     if (item is ConsoleColor color)
                         Console.ForegroundColor = color;
                     else
-                        Console.Write(item.ToString().Normalize(NormalizationForm.FormC));
+                        Console.Write(item.ToString());
                 }
                 Console.WriteLine();
             }

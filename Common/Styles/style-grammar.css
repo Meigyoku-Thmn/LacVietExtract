@@ -1,0 +1,156 @@
+﻿* {
+    line-height: initial;
+}
+
+d-content {
+    display: block;
+}
+
+ol.level > li {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+    ol.level > li:not(:first-of-type) {
+        margin-top: 0.4em;
+    }
+
+ol.topic {
+    padding-inline-start: 2.5em;
+    -webkit-padding-start: 2.5em;
+    counter-reset: lesson;
+}
+
+    ol.topic > li {
+        font-style: italic;
+        text-decoration: underline;
+        margin-top: 0.4em;
+    }
+
+ol.lesson {
+    list-style: none;
+    padding-inline-start: 5.5em;
+    -webkit-padding-start: 5.5em;
+}
+
+    ol.lesson > li {
+        margin-top: 0.1em;
+        counter-increment: lesson;
+    }
+
+        ol.lesson > li::before {
+            display: inline-block;
+            content: "Bài " counter(lesson) ": ";
+            width: 4.6em;
+            margin-left: -4.6em;
+        }
+
+        ol.lesson > li:first-of-type {
+            margin-top: 0.4em;
+        }
+
+.eg-title {
+    margin-bottom: 0;
+}
+
+.eg-list {
+    margin-top: 0.3em;
+}
+
+input {
+    font-size: 1em;
+}
+
+d-tick {
+    color: green;
+}
+
+d-cross {
+    color: red;
+}
+
+p, button {
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+d-choice {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    color: blue;
+}
+
+    d-choice:hover {
+        background-color: yellow;
+    }
+
+    d-choice:before {
+        display: inline-block;
+        content: '';
+        width: 0.1em;
+    }
+
+    d-choice:after {
+        display: inline-block;
+        content: '';
+        width: 0.1em;
+    }
+
+    d-choice.selected > d-oval {
+        position: absolute;
+        top: -4px;
+        bottom: -4px;
+        left: -4px;
+        right: -4px;
+        border: 3px solid blue;
+        border-radius: 50%;
+        opacity: 0.6;
+    }
+
+d-answers {
+    display: none;
+}
+
+d-answer {
+    display: inline-block;
+    color: blue;
+}
+
+    d-answer:before {
+        display: inline-block;
+        content: '';
+        width: 0.1em;
+    }
+
+    d-answer:after {
+        display: inline-block;
+        content: '';
+        width: 0.1em;
+    }
+
+.show-answer d-answers {
+    display: initial;
+}
+
+.show-answer d-choice.selected > d-oval {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    left: -4px;
+    right: -4px;
+    border: 3px solid red;
+    border-radius: 50%;
+    opacity: 0.6;
+}
+
+.show-answer d-choice.answer > d-oval {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    left: -4px;
+    right: -4px;
+    border: 3px solid green;
+    border-radius: 50%;
+    opacity: 0.6;
+}

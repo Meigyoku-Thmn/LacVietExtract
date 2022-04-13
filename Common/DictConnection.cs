@@ -1,5 +1,7 @@
 ﻿using BerkeleyDB;
+using Lucene.Net.Index;
 using MetaKitWrapper;
+using MoreLinq;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -7,15 +9,14 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
-
-using static System.StringSplitOptions;
 using static Common.Tools;
+using static System.StringSplitOptions;
 
 namespace Common
 {
     using Seeds = Dictionary<uint, string>;
 
-    public enum DbFileType { SQLite3, Berkeley, MetakitArchive }
+    public enum DbFileType { SQLite3, Berkeley, MetakitArchive, Lucene, ImageArchive }
 
     public abstract class DictConnection : IDisposable
     {
@@ -23,8 +24,9 @@ namespace Common
         protected readonly Encoding KeywordEncoding;
         protected readonly Seeds Seeds;
 
-        public static DictConnection Create(
-            string dbPath, DbFileType dbType, Encoding keywordEncoding, string tempDirName, Seeds seeds)
+        public static DictConnection Create(string dbPath,
+            DbFileType dbType, Encoding keywordEncoding, string tempDirName,
+            Seeds seeds, Dictionary<string, string> fileNameMap = null)
         {
             if (dbType == DbFileType.SQLite3)
                 return new Sqlite3Connection(dbPath, keywordEncoding, tempDirName, seeds);
@@ -32,23 +34,36 @@ namespace Common
                 return new BerkeleyConnection(dbPath, keywordEncoding, tempDirName, seeds);
             if (dbType == DbFileType.MetakitArchive)
                 return new MetakitArchiveConnection(dbPath, keywordEncoding, tempDirName, seeds);
+            if (dbType == DbFileType.Lucene)
+                return new LuceneConnection(dbPath, keywordEncoding, tempDirName, seeds, fileNameMap);
 
             throw new NotSupportedException($"DbFileType '{dbType}' chưa được hỗ trợ.");
         }
 
-        internal DictConnection(ref string dbPath, Encoding keywordEncoding, string tempDirName, Seeds seeds)
+        internal DictConnection(ref string dbPath, Encoding keywordEncoding, string tempDirName,
+            Seeds seeds, Dictionary<string, string> fileNameMap = null)
         {
             Seeds = seeds;
             KeywordEncoding = keywordEncoding;
             var cloneDbPath = Path.Combine(tempDirName, Path.GetFileName(dbPath));
             AllowAdditionalProcessing = CopyIfNewer(dbPath, cloneDbPath);
+            if (AllowAdditionalProcessing && fileNameMap != null)
+                RenameByFileNameMap(cloneDbPath, fileNameMap);
             dbPath = cloneDbPath;
         }
 
-        public abstract IEnumerable<(uint hash, string word)> ReadWords();
-        public abstract IEnumerable<(uint hash, string content)> ReadEntries();
-        public abstract int CountEntries();
-        public abstract string ReadEntryData(string word, uint hash);
+        static Exception NotImpl() => new NotImplementedException();
+
+        public virtual IEnumerable<(uint hash, string word)> ReadWords() => throw NotImpl();
+        public virtual IEnumerable<(uint hash, string content)> ReadEntries() => throw NotImpl();
+        public virtual int CountEntries() => throw NotImpl();
+        public virtual string ReadEntryData(string word, uint hash) => throw NotImpl();
+        public virtual int CountRelateds() => throw NotImpl();
+        public virtual IEnumerable<(uint hash, string content)> ReadRelateds() => throw NotImpl();
+        public virtual int CountImageCatalogGroups() => throw NotImpl();
+        public virtual IEnumerable<IGrouping<int, CatalogEntry>> ReadImageCatalogGroups() => throw NotImpl();
+        public virtual int CountGrammarItems() => throw NotImpl();
+        public virtual IEnumerable<IGrammarItem> ReadGrammarItems() => throw NotImpl();
         public abstract void Dispose();
 
         public static string IFF(string cond, string trueVal, string falseVal)
@@ -144,6 +159,39 @@ namespace Common
                 yield return (hash, content);
             }
         }
+        public override int CountRelateds()
+        {
+            var query = $@"
+                SELECT COUNT(DISTINCT ab)
+                FROM k_COMPOUNDS
+            ";
+            return (int)(long)new SQLiteCommand(query, _conn).ExecuteScalar();
+        }
+
+        public override IEnumerable<(uint hash, string content)> ReadRelateds()
+        {
+            var query = $@"
+                SELECT
+                    k_COMPOUNDS.ab                                                              AS hash,
+                    k_COMPOUNDS.cd                                                              AS data,
+                    {IFF("l_COMPOUNDS.cd IS NULL", "LENGTH(k_COMPOUNDS.cd)", "l_COMPOUNDS.cd")} AS decodedSize
+                FROM k_COMPOUNDS
+                LEFT JOIN l_COMPOUNDS ON k_COMPOUNDS.ab = l_COMPOUNDS.ab
+                GROUP BY k_COMPOUNDS.ab
+                ORDER BY hash
+            ";
+            using var cmd = new SQLiteCommand(query, _conn);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var hash = (uint)reader["hash"];
+                var data = reader["data"] as byte[];
+                var decodedSize = (int)(long)reader["decodedSize"];
+                DecodeBinaryInPlace(data);
+                var content = Encoding.Latin1.GetString(data.AsSpan(0, decodedSize));
+                yield return (hash, content);
+            }
+        }
 
         public override string ReadEntryData(string _, uint hash)
         {
@@ -167,6 +215,185 @@ namespace Common
                     : Encoding.Latin1.GetString(data.AsSpan(0, encryptedSize));
             }
             return default;
+        }
+
+        public override int CountImageCatalogGroups()
+        {
+            var query = $@"
+                SELECT COUNT(*)
+                FROM 'parentcatalo' p
+            ";
+            return (int)(long)new SQLiteCommand(query, _conn).ExecuteScalar();
+        }
+
+        public override IEnumerable<IGrouping<int, CatalogEntry>> ReadImageCatalogGroups()
+        {
+            var rowNumberCond = "ROW_NUMBER() OVER (PARTITION BY p.id) > 1";
+            var query = $@"
+                SELECT
+                   p.id                                     AS 'Category Id',
+                   {IFF(rowNumberCond, "NULL", "p.name")}   AS 'Category Name',
+                   {IFF(rowNumberCond, "NULL", "p.image")}  AS 'Category Image',
+                   c.id                                     AS 'Topic Id',
+                   c.name                                   AS 'Topic Name',
+                   c.name_vn                                AS 'Topic Name Translated',
+                   c.image                                  AS 'Topic Image'
+                FROM 'parentcatalo' p
+                JOIN 'catalo' c WHERE p.id = c.id_parent
+                ORDER BY p.id
+            ";
+            using var cmd = new SQLiteCommand(query, _conn);
+            using var reader = cmd.ExecuteReader();
+            IEnumerable<CatalogEntry> ReadAsCollection()
+            {
+                while (reader.Read())
+                {
+                    var categoryImage = reader.Get<byte[]>("Category Image");
+                    DecryptExtraContentInPlace(categoryImage);
+                    var topicImage = reader.Get<byte[]>("Topic Image");
+                    DecryptExtraContentInPlace(topicImage);
+                    yield return new CatalogEntry {
+                        CategoryId = (int)reader.Get<long>("Category Id"),
+                        CategoryName = reader.Get<string>("Category Name"),
+                        CategoryImage = categoryImage,
+                        TopicId = (int)reader.Get<long>("Topic Id"),
+                        TopicName = reader.Get<string>("Topic Name"),
+                        TopicNameTranslated = reader.Get<string>("Topic Name Translated"),
+                        TopicImage = topicImage,
+                    };
+                }
+            }
+            foreach (var group in ReadAsCollection().GroupAdjacent(e => e.CategoryId))
+                yield return group;
+        }
+
+        public override int CountGrammarItems()
+        {
+            var query = @$"
+                SELECT
+                    (SELECT COUNT(*) FROM 'Elementary') +
+                    (SELECT COUNT(*) FROM 'Intermediate') +
+                    (SELECT COUNT(*) FROM 'Advanced');
+            ";
+            return (int)(long)new SQLiteCommand(query, _conn).ExecuteScalar();
+        }
+
+        public override IEnumerable<IGrammarItem> ReadGrammarItems()
+        {
+            var rowNumberCond1 = "ROW_NUMBER() OVER (PARTITION BY LevelId) > 1";
+            var rowNumberCond2 = "ROW_NUMBER() OVER (PARTITION BY LevelId, topic) > 1";
+            var denseRank = "DENSE_RANK() OVER (ORDER BY LevelId, topic)";
+            var query = $@"
+                SELECT
+                    LevelId                                     AS 'LevelId',
+                    {IFF(rowNumberCond1, "NULL", "Level")}      AS 'Level',
+                    {IFF(rowNumberCond1, "NULL", "LevelVi")}    AS 'LevelVi',
+                    {denseRank}                                 AS 'TopicId',
+                    {IFF(rowNumberCond2, "NULL", "topic")}      AS 'Topic',
+                    lesson                                      AS 'Lesson',
+                    file                                        AS 'File',
+                    title_exercises                             AS 'ExerciseTitle',
+                    exercises                                   AS 'Exercise'
+                FROM (
+                    SELECT
+                        'Elementary' AS Level,
+                        'Sơ cấp' AS LevelVi,
+                        1 AS LevelId,
+                        *
+                    FROM 'Elementary'
+                    UNION
+                    SELECT
+                        'Intermediate' AS Level,
+                        'Trung cấp' AS LevelVi,
+                        2 AS LevelId,
+                        *
+                    FROM 'Intermediate'
+                    UNION
+                    SELECT
+                        'Advanced' AS Level,
+                        'Cao cấp' AS LevelVi,
+                        3 AS LevelId,
+                        *
+                    FROM 'Advanced'
+                )
+                ORDER BY LevelId, lesson_id
+            ";
+            using var cmd = new SQLiteCommand(query, _conn);
+            using var reader = cmd.ExecuteReader();
+
+            var lastLevelId = default(int?);
+            var lastLevelTitle = default(string);
+            var lastLevelTitleVi = default(string);
+
+            var lastTopicId = default(int?);
+            var lastTopicTitle = default(string);
+
+            while (reader.Read())
+            {
+                var levelId = (int)reader.Get<long>("LevelId");
+                var level = reader.Get<string>("Level");
+                var levelVi = reader.Get<string>("LevelVi");
+                var topicId = (int)reader.Get<long>("TopicId");
+                var topic = reader.Get<string>("Topic")?.Normalize().Trim();
+                var lesson = reader.Get<string>("Lesson")?.Normalize().Trim();
+                var fileArr = reader.Get<byte[]>("File");
+                DecryptExtraContentInPlace(fileArr);
+                var file = Encoding.UTF8.GetString(fileArr).Normalize();
+                var exerciseTitleArr = reader.Get<byte[]>("ExerciseTitle");
+                DecryptExtraContentInPlace(exerciseTitleArr);
+                var exerciseTitle = Encoding.UTF8.GetString(exerciseTitleArr).Normalize();
+                var exerciseArr = reader.Get<byte[]>("Exercise");
+                DecryptExtraContentInPlace(exerciseArr);
+                var exercise = Encoding.UTF8.GetString(exerciseArr).Normalize();
+
+                if (lastTopicId != topicId)
+                {
+                    if (lastTopicId != null)
+                    {
+                        yield return new GrammarTopic {
+                            Id = lastTopicId.Value,
+                            Title = lastTopicTitle,
+                        };
+                    }
+                    lastTopicId = topicId;
+                    lastTopicTitle = topic;
+                }
+
+                if (lastLevelId != levelId)
+                {
+                    if (lastLevelId != null)
+                    {
+                        yield return new GrammarLevel {
+                            Id = lastLevelId.Value,
+                            Title = lastLevelTitle,
+                            TitleVi = lastLevelTitleVi,
+                        };
+                    }
+                    lastLevelId = levelId;
+                    lastLevelTitle = level;
+                    lastLevelTitleVi = levelVi;
+                }
+
+                yield return new GrammarLesson {
+                    Title = lesson,
+                    Content = file,
+                    ExerciseTitle = exerciseTitle,
+                    ExerciseContent = exercise,
+                    Level = lastLevelTitle,
+                    LevelVi = lastLevelTitleVi,
+                    Topic = lastTopicTitle,
+                };
+            }
+
+            yield return new GrammarTopic {
+                Id = lastTopicId.Value,
+                Title = lastTopicTitle,
+            };
+            yield return new GrammarLevel {
+                Id = lastLevelId.Value,
+                Title = lastLevelTitle,
+                TitleVi = lastLevelTitleVi,
+            };
         }
     }
 
@@ -272,7 +499,7 @@ namespace Common
                     var blockName = Encoding.ASCII.GetString(reader.ReadBytes(reader.ReadByte()));
 
                     reader.BaseStream.Seek(dataPos, SeekOrigin.Begin);
-                    
+
                     ResolveAndExtract(tempDirName, blockName, reader.ReadBytes(dataSize));
                 }
             }
@@ -383,6 +610,39 @@ namespace Common
                     yield return (hash, content);
                 }
             }
+        }
+    }
+
+    public class LuceneConnection : DictConnection
+    {
+        readonly IndexReader _indexReader;
+
+        public LuceneConnection(string dbPath, Encoding keywordEncoding, string tempDirName,
+            Seeds seeds, Dictionary<string, string> fileNameMap)
+            : base(ref dbPath, keywordEncoding, tempDirName, seeds, fileNameMap)
+        {
+            _indexReader = IndexReader.Open(Lucene.Net.Store.FSDirectory.Open(dbPath), true);
+        }
+
+        public override void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            _indexReader?.Dispose();
+        }
+
+        public override int CountEntries() => _indexReader.NumDocs();
+
+        public override IEnumerable<(uint hash, string content)> ReadEntries()
+        {
+            for (int i = 0; i < _indexReader.MaxDoc; i++)
+            {
+                if (_indexReader.IsDeleted(i))
+                    continue;
+                var doc = _indexReader.Document(i);
+                foreach (var hashStr in _indexReader.GetTermFreqVector(i, "Content").GetTerms())
+                    yield return (uint.Parse(hashStr), doc.Get("Word"));
+            }
+
         }
     }
 }

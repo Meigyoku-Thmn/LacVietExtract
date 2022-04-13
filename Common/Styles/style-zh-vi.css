@@ -9,7 +9,12 @@ Tab {
 
 a {
     color: red;
+    text-decoration: none;
 }
+
+    a:hover {
+        background-color: yellow;
+    }
 
 PhoneticNotation {
     display: block;
@@ -38,6 +43,10 @@ Alternative {
         font-weight: bold;
         font-size: 1.17em;
     }
+
+        Alternative > a:hover {
+            background-color: greenyellow;
+        }
 
 Meta {
     display: block;
@@ -207,4 +216,8 @@ IdiomExampleTranslation {
 
 Media {
     display: none;
+}
+
+link + * {
+    margin-top: initial;
 }

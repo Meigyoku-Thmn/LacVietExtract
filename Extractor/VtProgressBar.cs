@@ -8,7 +8,7 @@ namespace Extractor
 {
     public class VtProgressBar : IDisposable
     {
-        static readonly bool Enabled = Tools.GuessVTSequenceSupport();
+        static readonly bool Enabled = Helper.GuessVTSequenceSupport();
         bool On = false;
 
         static readonly VtProgressBar Instance = new();
@@ -23,6 +23,14 @@ namespace Extractor
 
         public int Count = 0;
         public int Total = 100;
+
+        public static VtProgressBar Create(int total, string title)
+        {
+            var prBar = new VtProgressBar() { Total = total, Title = title };
+            prBar.Initialize();
+            prBar.Tick(0);
+            return prBar;
+        }
 
         public VtProgressBar()
         {
@@ -62,7 +70,7 @@ namespace Extractor
                 meta = "";
 
             var barWidth = Math.Abs(NColumns - meta.Length);
-            var barDone = barWidth * Count / Total;
+            var barDone = Total != 0 ? barWidth * Count / Total : 0;
             var doneStr = new string(DoneChr, barDone);
             var todoStr = new string(OngoingChr, barWidth - barDone);
             var progressBar = $"{meta}{doneStr}{todoStr}";

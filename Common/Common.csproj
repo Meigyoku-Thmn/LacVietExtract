@@ -14,10 +14,18 @@
 
 	<ItemGroup>
 		<PackageReference Include="Berkeley.DB" Version="6.1.26" GeneratePathProperty="true" />
-		<None Include="$(PkgBerkeley_DB)\content\libdb_csharp61.dll" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="$(PkgBerkeley_DB)\content\libdb61.dll" CopyToOutputDirectory="PreserveNewest" />
+		<Content Include="$(PkgBerkeley_DB)\content\libdb_csharp61.dll" CopyToOutputDirectory="PreserveNewest" />
+		<Content Include="$(PkgBerkeley_DB)\content\libdb61.dll" CopyToOutputDirectory="PreserveNewest" />
+		<PackageReference Include="DotNetZip" Version="1.16.0" />
 		<PackageReference Include="HtmlAgilityPack" Version="1.11.38" />
+		<PackageReference Include="Lucene.Net" Version="3.0.3" />
+		<PackageReference Include="MoreLinq.Source.MoreEnumerable.GroupAdjacent" Version="1.0.2" GeneratePathProperty="true">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<Compile Include="$(PkgMoreLinq_Source_MoreEnumerable_GroupAdjacent)\content\net20\MoreLinq\MoreEnumerable.GroupAdjacent.cs" />
 		<PackageReference Include="RtfPipe" Version="2.0.7677.4303" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.115.5" />
 	</ItemGroup>
 
@@ -33,6 +41,63 @@
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	  <None Update="config.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[en-vi]-abbre.png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[en-vi]-affix.png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[en-vi]-grammar.png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[en-vi]-image.png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[en-vi].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[fr-vi].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[ja-vi].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[ko-vi].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[vi-en].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[vi-fr].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[vi-ja].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[vi-ko].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[vi-vi].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[vi-zh].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Icons\lv-[zh-vi].png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Scripts\grammar.js">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Scripts\loader.js">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Styles\style-grammar.css">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Styles\style-image.css">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Styles\style-ko.css">
