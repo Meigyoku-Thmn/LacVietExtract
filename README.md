@@ -1,0 +1,1 @@
+The repository was moved to https://codeberg.org/Meigyoku-Thmn/LacVietExtract
